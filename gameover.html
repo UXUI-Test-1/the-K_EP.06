@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>게임 오버 화면 미리보기</title>
+  <style>
+/* ── 폰트 ──────────────────────────────────────────── */
+@font-face { font-family: 'DOSGothic';  src: url('assets/fonts/DOSGothic.woff') format('woff'); font-display: block; }
+@font-face { font-family: 'DOSMyungjo'; src: url('assets/fonts/DOSMyungjo.woff') format('woff'); font-display: block; }
+@font-face { font-family: 'Departure Mono'; src: url('assets/fonts/DepartureMono-Regular.woff2') format('woff2'); font-display: block; }
+@font-face { font-family: 'DOSIyagiBoldface'; src: url('assets/fonts/DOSIyagiBoldface.ttf') format('truetype'); font-display: block; }
+/* 본인인증 플로우 화면용 Paperlogy (Regular 400 / Medium 500 / Bold 700) */
+@font-face { font-family: 'Paperlogy'; font-weight: 400; src: url('assets/fonts/Paperlogy-4Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Paperlogy'; font-weight: 500; src: url('assets/fonts/Paperlogy-5Medium.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Paperlogy'; font-weight: 800; src: url('assets/fonts/Paperlogy-8ExtraBold.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Pretendard'; font-weight: 500; src: url('assets/fonts/Pretendard-Medium.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Pretendard'; font-weight: 700; src: url('assets/fonts/Pretendard-Bold.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Paperlogy'; font-weight: 700; src: url('assets/fonts/Paperlogy-7Bold.ttf') format('truetype'); font-display: swap; }
+
+:root {
+  --blue: #0956f8;
+  --navy: #002b7e;
+  --yellow: #fedb1f;
+  --f-gothic: 'DOSGothic', 'Malgun Gothic', sans-serif;
+  --f-iyagi: 'DOSIyagiBoldface', 'DOSGothic', 'Malgun Gothic', sans-serif;
+  --f-myungjo: 'DOSMyungjo', 'DOSGothic', serif;
+  --f-mono: 'Departure Mono', monospace;
+  /* 2px 계단형 모서리 (피그마 픽셀 프레임) */
+  --st6: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0,
+                 calc(100% - 6px) 0, calc(100% - 6px) 2px, calc(100% - 4px) 2px, calc(100% - 4px) 4px, calc(100% - 2px) 4px, calc(100% - 2px) 6px, 100% 6px,
+                 100% calc(100% - 6px), calc(100% - 2px) calc(100% - 6px), calc(100% - 2px) calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) calc(100% - 2px), calc(100% - 6px) calc(100% - 2px), calc(100% - 6px) 100%,
+                 6px 100%, 6px calc(100% - 2px), 4px calc(100% - 2px), 4px calc(100% - 4px), 2px calc(100% - 4px), 2px calc(100% - 6px), 0 calc(100% - 6px));
+  --st4: polygon(0 4px, 2px 4px, 2px 2px, 4px 2px, 4px 0,
+                 calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px,
+                 100% calc(100% - 4px), calc(100% - 2px) calc(100% - 4px), calc(100% - 2px) calc(100% - 2px), calc(100% - 4px) calc(100% - 2px), calc(100% - 4px) 100%,
+                 4px 100%, 4px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 4px), 0 calc(100% - 4px));
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0b10; font-family: var(--f-gothic); color: #000; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* 375×812 디자인 캔버스를 화면에 맞춰 축소·확대 */
+#viewport { width: 100%; height: 100%; display: grid; place-items: center; }
+#stage-box { position: relative; }
+#stage { position: absolute; left: 0; top: 0; width: 375px; height: 812px; transform-origin: 0 0; background: #000; overflow: hidden; touch-action: none; }
+
+.screen { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.off { visibility: hidden; pointer-events: none; }
+.nowrap { white-space: nowrap; }
+.f-iyagi { font-family: var(--f-iyagi); }
+.f-gothic { font-family: var(--f-gothic); }
+
+/* 스프라이트 시트에서 잘라 쓰는 조각 (피그마 크롭 값 그대로) */
+.sp { position: absolute; overflow: hidden; pointer-events: none; width: var(--w); height: var(--h); }
+.sp > img { position: absolute; max-width: none; width: var(--iw); height: var(--ih); left: var(--il); top: var(--it); }
+
+/* 픽셀 프레임 */
+.px { position: absolute; background: var(--pxb, var(--navy)); clip-path: var(--st6); }
+.px::before { content: ''; position: absolute; inset: 2px; background: var(--pxf, #000); clip-path: var(--st4); }
+
+
+/* ── 게임 오버 / 올클리어 ─────────────────────────── */
+.end-stats { position: absolute; left: 50%; top: 45px; transform: translateX(-50%); width: 173px; display: flex; justify-content: space-between; align-items: center; font-family: var(--f-iyagi); white-space: nowrap; }
+.stat { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.stat-label { font-size: 22px; letter-spacing: -0.44px; color: #000; line-height: normal; }
+.stat-num { font-size: 62px; letter-spacing: -1.24px; color: #0956f8; line-height: normal; }
+.end-msg { position: absolute; left: 187px; top: 587px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.elines .hl { color: #e4358f; }
+.elines { margin-top: 1px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; letter-spacing: -0.28px; color: #fff; white-space: nowrap; line-height: normal; }
+.end-lbl { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: grid; place-items: center; font-family: var(--f-iyagi); font-size: 16px; letter-spacing: -0.32px; color: #000; pointer-events: none; white-space: nowrap; }
+
+/* ── 본인인증 플로우 (모바일 웹 화면 스타일) ───────── */
+.flow { background: #fff; color: #000; font-family: 'Paperlogy', 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif; }
+.flow * { user-select: none; }
+.flow-back { position: absolute; left: 20px; top: 62px; width: 24px; height: 24px; }
+.flow-back img { position: absolute; left: 7px; top: 2px; width: 10.5px; height: 19px; }
+.flow-col { position: absolute; left: 16px; top: 109px; width: 343px; display: flex; flex-direction: column; }
+.flow-txt { padding: 0 8px; display: flex; flex-direction: column; gap: 12px; }
+.flow-txt h2 { font-weight: 700; font-size: 26px; line-height: 1.3; letter-spacing: -0.52px; color: #111; }
+.flow-txt p { font-weight: 400; font-size: 16px; line-height: 1.3; letter-spacing: -0.32px; opacity: .6; width: 319px; }
+/* 약관을 여러 개 펼치면 화면 안에서 스크롤 */
+.flow-col.scroll { left: 0; width: 375px; bottom: 0; padding: 0 16px 130px; overflow-y: auto; scrollbar-width: none; }
+.flow-col.scroll::-webkit-scrollbar { display: none; }
+.flow-idcard { display: block; width: 343px; height: 225px; margin-top: 40px; }
+.agree-list { display: flex; flex-direction: column; gap: 18px; }
+.agree { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+.agree .arow { display: flex; align-items: flex-start; justify-content: space-between; min-height: 24px; }
+.agree .alabel { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.agree .alabel img { width: 24px; height: 24px; flex: none; }
+.agree .alabel span { font-weight: 500; font-size: 16px; line-height: 1.4; letter-spacing: -0.32px; opacity: .9; white-space: nowrap; padding-top: 0; }
+.agree .atoggle { width: 24px; height: 24px; flex: none; }
+.agree .atoggle img { width: 24px; height: 24px; display: block; transition: transform .2s; }
+.agree.open .atoggle img { transform: none; }
+.agree:not(.open) .atoggle img { transform: rotate(180deg); }
+.agree .abox { display: none; background: #f5f8fb; border-radius: 18px; padding: 18px; font-weight: 400; font-size: 14px; line-height: 1.5; letter-spacing: -0.28px; opacity: .8; margin: 0 -8px; }
+.agree.open .abox { display: block; }
+.flow-bottom { position: absolute; left: 0; bottom: 0; width: 375px; padding: 0 16px 18px; }
+.flow-bottom::before { content: ''; position: absolute; left: 0; right: 0; bottom: 78px; height: 52px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,.86) 46.6%, #fff 65.4%); pointer-events: none; }
+.flow-btn { display: block; width: 100%; padding: 18px 0; border-radius: 18px; background: #2b4095; color: #fff; font-family: inherit; font-weight: 500; font-size: 18px; line-height: 24px; text-align: center; white-space: nowrap; }
+.flow-btn:disabled { opacity: .35; cursor: default; }
+.flow-btn.outline { background: #fff; color: #2b4095; border: 1px solid #2b4095; padding: 17px 0; }
+.info-card { border: 1px solid #e1e4e9; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 24px; font-weight: 500; font-size: 16px; line-height: 1.5; letter-spacing: -0.32px; white-space: nowrap; }
+.info-card .r { display: flex; justify-content: space-between; align-items: center; }
+.info-card .k { opacity: .6; }
+.applied-txt { position: absolute; left: 0; top: 81px; width: 375px; padding: 0 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.applied-txt h2 { font-weight: 700; font-size: 30px; line-height: 34px; letter-spacing: 0.6px; color: #111; }
+.applied-txt p { font-weight: 500; font-size: 16px; line-height: 1.5; opacity: .6; }
+.applied-btns { position: absolute; left: 12px; top: 609px; width: 351px; display: flex; flex-direction: column; gap: 10px; }
+.back-game { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-weight: 500; font-size: 18px; line-height: 24px; color: #000; }
+.back-game img { width: 11.33px; height: 10px; }
+.flow-btn:active:not(:disabled), .back-game:active { opacity: .85; }
+
+
+/* ── 진입 화면(랜딩): GNB + 배너 + 푸터 ───────────────────────── */
+#landing-banner { position: absolute; left: 0; top: 132px; width: 375px; height: 388.67px; overflow: hidden; background: #000; }
+#landing-hint { position: absolute; left: 188.5px; top: 224.5px; transform: translate(-50%, -50%); font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; color: #fff; white-space: nowrap; animation: hint-blink 1.4s ease-in-out infinite; }
+@keyframes hint-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+#gnb { position: absolute; left: 0; top: 0; width: 375px; height: 132px; z-index: 5; font-family: 'Paperlogy', 'Pretendard', sans-serif; pointer-events: none; }
+#gnb > * { pointer-events: auto; }
+.gnb-title { position: absolute; left: 24px; top: 40px; height: 30px; display: flex; align-items: center; white-space: nowrap; font-weight: 800; font-size: 25.255px; line-height: normal; letter-spacing: -0.7576px; color: #21409a; }
+.gnb-title .dash { letter-spacing: -1.5153px; }
+/* GNB 메뉴: 30px 아이콘 버튼 8개 (가운데 파란 칩이 EP.06 벽돌깨기) */
+.gnb-menu { position: absolute; left: 0; top: 94px; width: 375px; height: 30px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.08)); }
+.gb { position: absolute; top: 0; width: 30px; height: 30px; box-sizing: border-box; background: #fff; border: 1px solid #ebebeb; border-radius: 10px; }
+.gi { position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; overflow: hidden; }
+.gi.round { border-radius: 50%; }
+.gs { position: absolute; overflow: hidden; }
+.gs > img { position: absolute; max-width: none; }
+#menu-chip { position: absolute; left: 180px; top: 0; width: 112px; height: 30px; box-sizing: border-box; border-radius: 10px; background: #e1ebff; cursor: pointer; }
+#menu-chip .gi { background: transparent; }
+#menu-chip span.t { position: absolute; left: 30px; top: 9px; font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 12px; line-height: 1; letter-spacing: -0.36px; color: #21409a; text-transform: uppercase; white-space: nowrap; }
+#entry-footer { position: absolute; left: 0; top: 520.67px; width: 375px; height: 291.33px; background: #f5f8fd; font-family: 'Paperlogy', 'Pretendard', sans-serif; color: #000; text-transform: uppercase; }
+#entry-footer .logo { position: absolute; left: 24px; top: 32px; width: 240px; height: 21.329px; overflow: hidden; }
+#entry-footer .logo img { position: absolute; display: block; max-width: none; }
+#entry-footer .flinks { position: absolute; left: 24px; top: 85.33px; display: flex; align-items: center; gap: 9px; opacity: .7; font-weight: 700; font-size: 14px; line-height: 1.3; letter-spacing: -0.14px; white-space: nowrap; }
+#entry-footer .flinks i { display: block; width: 1px; height: 12px; background: #d8dce2; }
+#entry-footer .fline { position: absolute; left: 24px; top: 121.5px; width: 327px; height: 1px; background: #666e75; opacity: .2; }
+#entry-footer .addr { position: absolute; left: 24px; top: 150.5px; font-weight: 700; font-size: 13px; line-height: 1.5; opacity: .5; white-space: pre; }
+#entry-footer .copy { position: absolute; left: 24px; top: 213.5px; font-weight: 700; font-size: 11px; line-height: 1.5; opacity: .3; white-space: pre; }
+/* 메뉴를 누르면 뜨는 말풍선 tip */
+#menu-tip { position: absolute; left: 34px; top: 120px; width: 272px; height: 46px; z-index: 6; filter: drop-shadow(0 4px 7.5px rgba(0,0,0,.15)); }
+#menu-tip .arrow { position: absolute; left: 5px; top: 0; width: 262px; height: 22px; transform: rotate(180deg); }
+#menu-tip .bubble { position: absolute; left: 0; top: 12px; width: 272px; height: 34px; box-sizing: border-box; background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Pretendard', sans-serif; font-weight: 500; font-size: 12px; line-height: normal; letter-spacing: -0.36px; color: #2853f6; white-space: nowrap; text-transform: uppercase; }
+
+/* ── 진입 화면 ─────────────────────────────────────── */
+.title-layer { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 48px; line-height: normal; letter-spacing: -0.96px; text-align: center; white-space: nowrap; }
+.intro { position: absolute; left: 188.5px; top: 349px; transform: translate(-50%, -50%); color: #fff; font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; text-align: center; white-space: nowrap; }
+.big-btn { position: absolute; top: 423px; height: 44px; }
+.big-btn .label { position: absolute; font-family: var(--f-mono); font-size: 30.273px; line-height: 1; letter-spacing: -1.5136px; color: #000; white-space: nowrap; pointer-events: none; }
+.big-btn:active { transform: translateY(2px); }
+.bubble-text { position: absolute; left: 166.77px; top: 517.32px; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 14.323px; line-height: 1.2; letter-spacing: -0.2865px; text-align: center; white-space: nowrap; color: #000; }
+
+/* ── 흰 팝업 박스 (TIP / 도감 / 경품 / 결과) ───────── */
+.wbox { position: absolute; background: #fff; border: 4px solid #000; padding: 6px; }
+.wbar { position: relative; height: 30px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.wbar .t-myungjo { font-family: var(--f-myungjo); font-size: 18px; letter-spacing: -0.36px; }
+.wbar .t-iyagi { font-family: var(--f-iyagi); font-size: 14px; letter-spacing: -0.28px; }
+.wx { position: absolute; right: 3px; top: 3px; width: 24px; height: 24px; background: #fff; overflow: hidden; }
+.wx img { display: block; width: 24px; height: 24px; }
+/* TIP 팝업 새 컬러: 크림 바탕 + 남색 테두리/제목 바 + 핑크 닫기 버튼 */
+.tipbox { background: #fff6e6; border-color: #14125a; }
+.tipbox .wbar { background: #14125a; }
+.tipbox .wx { background: #f0489b; }
+.tipbox .wx img { position: absolute; left: 50%; top: 4.3px; width: 14.355px; height: 12.355px; transform: translateX(-50%); }
+.dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .8); }
+.tip-sec { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tip-sec h4 { font-weight: normal; font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; padding: 2px 10px; border-bottom: 2px solid #000; }
+.tip-sec p { font-size: 14px; line-height: 1.3; letter-spacing: -0.28px; text-align: center; white-space: nowrap; }
+.hl { color: var(--blue); font-weight: normal; }
+
+/* ── 게임 화면 ─────────────────────────────────────── */
+.hdr-txt { position: absolute; left: 53px; top: 19px; height: 19px; display: flex; align-items: center; gap: 4px; white-space: nowrap; font-family: var(--f-iyagi); }
+.hud-txt { position: absolute; left: 20px; top: 66px; height: 35px; display: flex; align-items: center; gap: 20px; font-family: var(--f-iyagi); font-size: 20px; letter-spacing: -0.4px; white-space: nowrap; }
+.hud-txt .k { color: var(--yellow); }
+.hud-txt .v { color: #fff; margin-left: 12px; }
+.icon-btn { position: absolute; top: 10px; width: 36px; height: 35px; }
+.icon-btn:active { transform: translateY(1px); }
+#dex-btn { position: absolute; left: 226px; top: 66px; width: 132px; height: 35px; }
+#dex-btn:active { transform: translateY(1px); }
+#dex-btn .lbl { position: absolute; left: 80px; top: 17.5px; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 14px; letter-spacing: -0.28px; white-space: nowrap; color: #000; }
+#game-canvas { position: absolute; left: 12px; top: 119px; width: 351px; height: 639px; display: block; background: #000; touch-action: none; }
+.hp-layer { position: absolute; left: 0; top: 0; width: 355px; height: 47px; max-width: none; }
+#hp-empty { filter: grayscale(1) brightness(1.1); }
+#hp-text { position: absolute; left: 304px; top: 782px; display: flex; align-items: center; gap: 3px; font-size: 12px; letter-spacing: -0.24px; color: #000; white-space: nowrap; }
+#hp-text #hp-cur { color: var(--blue); font-weight: normal; }
+
+/* 도감 카드 / 알림 카드 */
+.drow { position: absolute; display: flex; align-items: center; gap: 16px; }
+.icol { position: relative; width: 27px; height: 34px; flex: none; }
+.icol .sp { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.tcol { width: 194px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.tag { display: block; height: 18px; line-height: 18px; padding-left: 6px; color: #fff; font-size: 11px; letter-spacing: -0.22px; white-space: nowrap; background-size: 100% 100%; }
+.tt { font-size: 15px; letter-spacing: -0.3px; line-height: normal; color: #000; }
+.td { font-size: 12px; letter-spacing: -0.24px; line-height: normal; color: #000; opacity: .5; white-space: nowrap; margin-top: -1px; }
+.tbody { display: flex; flex-direction: column; gap: 3px; }
+.dcard { position: relative; width: 316px; height: 68px; flex: none; }
+.dcard .px { left: 0; top: 0; width: 316px; height: 68px; --pxb: var(--blue); --pxf: #fff; }
+.dcard .drow { left: 10px; top: 6px; }
+.dcard .lockov { position: absolute; left: 2px; top: 2px; width: 312px; height: 64px; }
+.dcard .lockic { left: 50%; top: 50%; transform: translate(-50%, -50%); margin-left: .5px; margin-top: -.5px; }
+#dex-list { position: absolute; left: 14px; top: 155px; width: 316px; height: 400px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
+/* Total/획득 줄은 고정, 카드 목록만 스크롤 */
+#dex-cards { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px; }
+#dex-cards::-webkit-scrollbar { display: none; }
+.dex-sum { display: flex; justify-content: space-between; padding: 0 4px; font-size: 12px; letter-spacing: -0.24px; flex: none; }
+.dex-msg { position: absolute; left: 50%; top: 60px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; width: 235px; }
+.dex-msg .lines { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 15px; letter-spacing: -0.3px; white-space: nowrap; line-height: normal; }
+.ducks { position: relative; width: 75px; height: 24px; }
+.foot-btn { position: absolute; top: 572px; height: 44px; overflow: hidden; font-family: var(--f-iyagi); font-size: 16px; letter-spacing: -0.32px; color: #000; white-space: nowrap; display: grid; place-items: center; }
+.foot-btn img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; pointer-events: none; }
+.foot-btn span { position: relative; line-height: 1; }
+.foot-btn:active:not(:disabled) { transform: translateY(2px); }
+.foot-btn:disabled { cursor: default; }
+
+/* 도감 팝업 새 컬러 (크림 바탕 + 남색 테두리/헤더 + 핑크 포인트) */
+.dexbox { background: #fff6e6; border-color: #14125a; }
+.dexbox .wbar { background: #14125a; }
+.dexbox .dex-msg .lines, .dexbox .dex-sum, .dexbox .tt { color: #14125a; }
+.dexbox .hl { color: #e4358f; }
+.dexbox .td { color: #5e5c99; }
+.dexbox .dcard .px { --pxb: #14125a; --pxf: #fff6e6; }
+
+#toast { position: absolute; left: 10px; top: 45px; width: 355px; height: 68px; pointer-events: none; }
+#toast .drow { left: 10px; top: 6px; }
+
+.end-btn { position: relative; width: 197px; height: 44px; overflow: hidden; font-family: var(--f-iyagi); font-size: 16px; display: grid; place-items: center; }
+.end-btn img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; pointer-events: none; }
+.end-btn span { position: relative; line-height: 1; }
+  </style>
+</head>
+<body>
+<!-- 게임 오버 화면 미리보기 전용 페이지.
+     주소 뒤에 ?stage=숫자&items=숫자 를 붙이면 값이 바뀝니다. (예: gameover.html?stage=1&items=5) -->
+<div id="viewport"><div id="stage-box"><div id="stage">
+  <section id="screen-end" class="screen" style="opacity:1;background:#000">
+    <img class="abs" src="assets/end-sky.png" alt="" style="left:0;top:-19px;width:375px;height:850px;object-fit:cover;opacity:.3">
+    <img class="abs" src="assets/end-cabinet.png" alt="" style="left:-93px;top:173px;width:562px;height:843px;object-fit:cover">
+    <img class="abs" src="assets/title-banner.svg" alt="더케이 오락실" style="left:84.6px;top:274.56px;width:207.82px;height:31.53px">
+    <!-- 타이틀: 시안의 벡터(SVG) 4겹 — 그림자 면/선 + 본체 면/선. 위치·크기는 JS(showEnd)에서 종류별로 지정 -->
+    <div id="end-title-vec" class="abs" style="left:0;top:0;width:375px;height:300px">
+      <img id="et-sf" class="abs" alt=""><img id="et-ss" class="abs" alt=""><img id="et-mf" class="abs" alt=""><img id="et-ms" class="abs" alt="">
+    </div>
+    <div class="abs" style="left:42px;top:387px;width:290px;height:179px;overflow:hidden">
+      <img class="abs" src="assets/end-card.png" alt="" style="left:0;top:.5px;width:290px;height:179px;object-fit:cover">
+      <div class="end-stats"><div class="stat"><span class="stat-label">STAGE</span><span class="stat-num" id="end-stage">1</span></div><div class="stat"><span class="stat-label">ITEM</span><span class="stat-num" id="end-item">0</span></div></div>
+    </div>
+    <div class="end-msg"><div class="ducks" id="end-ducks"></div><div class="elines" id="end-lines"></div></div>
+    <button id="end-dex" type="button" class="abs big-btn" style="left:54px;top:708px;width:120px" aria-label="아이템 도감"><i class="sp" style="left:0px;top:0;--w:55px;--h:44px;--iw:501.82%;--ih:209.09%;--il:-12.73%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><i class="sp" style="left:34px;top:0;--w:60px;--h:44px;--iw:460%;--ih:209.09%;--il:-50.88%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><i class="sp" style="left:83px;top:0;--w:37px;--h:44px;--iw:745.95%;--ih:209.09%;--il:-627.03%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><span class="end-lbl">아이템 도감</span></button>
+    <button id="end-restart" class="abs big-btn" style="left:180px;top:708px;width:140px" aria-label="다시 도전하기"><i class="sp" style="left:0px;top:0;--w:66px;--h:44px;--iw:427.27%;--ih:213.64%;--il:-13.64%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><i class="sp" style="left:75px;top:0;--w:65px;--h:44px;--iw:433.85%;--ih:213.64%;--il:-318.48%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><i class="sp" style="left:63px;top:0;--w:44px;--h:44px;--iw:640.91%;--ih:213.64%;--il:-470.48%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><span class="end-lbl" id="end-restart-label">다시 도전하기</span></button>
+  </section>
+</div></div></div>
+
+<script>
+const IS_VICTORY = false;
+const DEFAULTS = { stage: 1, items: 0 };
+const REQUIRED = 3, TOTAL = 10, PRIZE_NAME = '경품';
+
+// 화면 크기에 맞춰 375×812 디자인을 확대·축소
+const stageBox = document.getElementById('stage-box'), stageEl = document.getElementById('stage');
+function fitStage() {
+  const s = Math.min(innerWidth / 375, innerHeight / 812, 1.25);
+  stageBox.style.width = 375 * s + 'px'; stageBox.style.height = 812 * s + 'px';
+  stageEl.style.transform = `scale(${s})`;
+}
+fitStage(); addEventListener('resize', fitStage);
+
+const $ = (id) => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const num = (k, d, max) => { const v = parseInt(q.get(k), 10); return Number.isFinite(v) ? Math.max(0, Math.min(max, v)) : d; };
+const stage = num('stage', DEFAULTS.stage, 3), items = num('items', DEFAULTS.items, TOTAL);
+
+function sp(src, w, h, iw, ih, il, it, extra = '') {
+  return `<i class="sp" style="--w:${w}px;--h:${h}px;--iw:${iw}%;--ih:${ih}%;--il:${il}%;--it:${it}%;${extra}"><img src="${src}" alt=""></i>`;
+}
+function ducksLayout(count) {
+  if (count >= REQUIRED) return [['on', 0], ['on', 25], ['on', 50]];
+  if (count <= 0) return [['off', 0], ['off', 25], ['off', 50]];
+  if (count === 1) return [['on', 0], ['off', 23], ['off', 48]];
+  return [['on', 0], ['on', 25], ['off', 48]];
+}
+const K = 38 / 24;
+function ducksHtml(count) {
+  return ducksLayout(count).map(([kind, x]) => kind === 'on'
+    ? sp('assets/mascot-sheet.png', 23 * K, 24 * K, 315.46, 100, -8.76, 0, `left:${x * K}px;top:0`)
+    : sp('assets/duck-dark.png', 25 * K, 24 * K, 288, 100, 0, 0, `left:${x * K}px;top:0`)).join('');
+}
+const ducksWidth = (count) => Math.max(...ducksLayout(count).map(([kind, x]) => (x + (kind === 'on' ? 23 : 25)) * K));
+
+const END_TITLES = {
+  over: [['gameover-shadow', 72.25, 60.25, 223.25, 156.75], ['gameover-shadow-stroke', 72.05, 60.05, 223.65, 157.15],
+         ['gameover-main', 70.25, 56.25, 223.25, 156.75], ['gameover-main-stroke', 70.05, 56.05, 223.65, 157.15]],
+  clear: [['allclear-shadow', 48.25, 60.25, 271.25, 156.75], ['allclear-shadow-stroke', 48.05, 60.05, 271.65, 157.15],
+          ['allclear-main', 46.25, 56.25, 271.25, 156.75], ['allclear-main-stroke', 46.05, 56.05, 271.65, 157.15]]
+};
+['et-sf', 'et-ss', 'et-mf', 'et-ms'].forEach((id, i) => {
+  const [file, l, t, w, h] = END_TITLES[IS_VICTORY ? 'clear' : 'over'][i];
+  const im = $(id); im.src = `assets/title-${file}.svg`;
+  im.style.cssText = `left:${l}px;top:${t}px;width:${w}px;height:${h}px;max-width:none`;
+});
+
+$('end-stage').textContent = stage;
+$('end-item').textContent = items;
+$('end-ducks').style.cssText = `width:${ducksWidth(items)}px;height:38px`;
+$('end-ducks').innerHTML = ducksHtml(items);
+$('end-lines').innerHTML = items >= REQUIRED
+  ? `<div>아이템 <span class="hl">${items}개</span> 수집 완료!</div><div>하단의 아이템 도감 버튼을 눌러</div><div>본인인증 후 <span class="hl">${PRIZE_NAME}</span> 응모가 가능해요.</div>`
+  : `<div>아이템 <span class="hl">${REQUIRED}개</span> 모으면</div><div>본인인증 후 ${PRIZE_NAME} 응모!</div><div>앞으로 <span class="hl">${REQUIRED - items}개</span> 남았어요.</div>`;
+$('end-restart-label').textContent = IS_VICTORY ? '한 판 더' : '다시 도전하기';
+// 미리보기용: 재시작 버튼은 게임(index.html)으로 이동
+$('end-restart').addEventListener('click', () => { location.href = 'index.html'; });
+</script>
+</body>
+</html>
