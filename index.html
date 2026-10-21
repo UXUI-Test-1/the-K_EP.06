@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>더케이 오락실 레트로 벽돌깨기</title>
+  <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+/* ── 폰트 ──────────────────────────────────────────── */
+@font-face { font-family: 'DOSGothic';  src: url('assets/fonts/DOSGothic.woff') format('woff'); font-display: block; }
+@font-face { font-family: 'DOSMyungjo'; src: url('assets/fonts/DOSMyungjo.woff') format('woff'); font-display: block; }
+@font-face { font-family: 'Departure Mono'; src: url('assets/fonts/DepartureMono-Regular.woff2') format('woff2'); font-display: block; }
+/* DOSIyagiBoldface: PC에 설치돼 있으면 그대로 사용, 없으면 DOSGothic으로 대체 */
+@font-face { font-family: 'DOSIyagiBoldface'; src: local('DOSIyagiBoldface'), local('DOSIyagi Boldface'), url('assets/fonts/DOSGothic.woff') format('woff'); font-display: block; }
+
+:root {
+  --blue: #0956f8;
+  --navy: #002b7e;
+  --yellow: #fedb1f;
+  --f-gothic: 'DOSGothic', 'Malgun Gothic', sans-serif;
+  --f-iyagi: 'DOSIyagiBoldface', 'DOSGothic', 'Malgun Gothic', sans-serif;
+  --f-myungjo: 'DOSMyungjo', 'DOSGothic', serif;
+  --f-mono: 'Departure Mono', monospace;
+  /* 2px 계단형 모서리 (피그마 픽셀 프레임) */
+  --st6: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0,
+                 calc(100% - 6px) 0, calc(100% - 6px) 2px, calc(100% - 4px) 2px, calc(100% - 4px) 4px, calc(100% - 2px) 4px, calc(100% - 2px) 6px, 100% 6px,
+                 100% calc(100% - 6px), calc(100% - 2px) calc(100% - 6px), calc(100% - 2px) calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) calc(100% - 2px), calc(100% - 6px) calc(100% - 2px), calc(100% - 6px) 100%,
+                 6px 100%, 6px calc(100% - 2px), 4px calc(100% - 2px), 4px calc(100% - 4px), 2px calc(100% - 4px), 2px calc(100% - 6px), 0 calc(100% - 6px));
+  --st4: polygon(0 4px, 2px 4px, 2px 2px, 4px 2px, 4px 0,
+                 calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px,
+                 100% calc(100% - 4px), calc(100% - 2px) calc(100% - 4px), calc(100% - 2px) calc(100% - 2px), calc(100% - 4px) calc(100% - 2px), calc(100% - 4px) 100%,
+                 4px 100%, 4px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 4px), 0 calc(100% - 4px));
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0b10; font-family: var(--f-gothic); color: #000; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* 375×812 디자인 캔버스를 화면에 맞춰 축소·확대 */
+#viewport { width: 100%; height: 100%; display: grid; place-items: center; }
+#stage-box { position: relative; }
+#stage { position: absolute; left: 0; top: 0; width: 375px; height: 812px; transform-origin: 0 0; background: #000; overflow: hidden; touch-action: none; }
+
+.screen { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.off { visibility: hidden; pointer-events: none; }
+.nowrap { white-space: nowrap; }
+.f-iyagi { font-family: var(--f-iyagi); }
+.f-gothic { font-family: var(--f-gothic); }
+
+/* 스프라이트 시트에서 잘라 쓰는 조각 (피그마 크롭 값 그대로) */
+.sp { position: absolute; overflow: hidden; pointer-events: none; width: var(--w); height: var(--h); }
+.sp > img { position: absolute; max-width: none; width: var(--iw); height: var(--ih); left: var(--il); top: var(--it); }
+
+/* 픽셀 프레임 */
+.px { position: absolute; background: var(--pxb, var(--navy)); clip-path: var(--st6); }
+.px::before { content: ''; position: absolute; inset: 2px; background: var(--pxf, #000); clip-path: var(--st4); }
+
+
+/* ── 게임 오버 / 올클리어 ─────────────────────────── */
+.end-title { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 100px; line-height: .88; letter-spacing: -2px; text-align: center; white-space: nowrap; }
+.end-stats { position: absolute; left: 50%; top: 45px; transform: translateX(-50%); width: 173px; display: flex; justify-content: space-between; align-items: center; font-family: var(--f-iyagi); white-space: nowrap; }
+.stat { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.stat-label { font-size: 22px; letter-spacing: -0.44px; color: #000; line-height: normal; }
+.stat-num { font-size: 62px; letter-spacing: -1.24px; color: #0956f8; line-height: normal; }
+.end-msg { position: absolute; left: 187.5px; top: 585px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.elines { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; letter-spacing: -0.28px; color: #fff; white-space: nowrap; line-height: normal; }
+.end-lbl { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: grid; place-items: center; font-family: var(--f-iyagi); font-size: 16px; letter-spacing: -0.32px; color: #000; pointer-events: none; white-space: nowrap; }
+/* DOSIyagiBoldface 가 설치돼 있지 않을 때(DOSGothic 대체)만 큰 글자를 살짝 굵게 */
+.iyagi-fb .end-title, .iyagi-fb .stat-num, .iyagi-fb .stat-label, .iyagi-fb .title-layer { -webkit-text-stroke: .045em currentColor; }
+
+/* ── 본인인증 플로우 (모바일 웹 화면 스타일) ───────── */
+.flow { background: #fff; color: #000; font-family: 'Paperlogy', 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif; }
+.flow * { user-select: none; }
+.flow-back { position: absolute; left: 20px; top: 62px; width: 24px; height: 24px; }
+.flow-back img { position: absolute; left: 7px; top: 2px; width: 10.5px; height: 19px; }
+.flow-col { position: absolute; left: 16px; top: 109px; width: 343px; display: flex; flex-direction: column; }
+.flow-txt { padding: 0 8px; display: flex; flex-direction: column; gap: 12px; }
+.flow-txt h2 { font-weight: 700; font-size: 26px; line-height: 1.3; letter-spacing: -0.52px; color: #111; }
+.flow-txt p { font-weight: 400; font-size: 16px; line-height: 1.3; letter-spacing: -0.32px; opacity: .6; width: 319px; }
+/* 약관을 여러 개 펼치면 화면 안에서 스크롤 */
+.flow-col.scroll { left: 0; width: 375px; bottom: 0; padding: 0 16px 130px; overflow-y: auto; scrollbar-width: none; }
+.flow-col.scroll::-webkit-scrollbar { display: none; }
+.flow-idcard { display: block; width: 343px; height: 225px; margin-top: 40px; }
+.agree-list { display: flex; flex-direction: column; gap: 18px; }
+.agree { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+.agree .arow { display: flex; align-items: flex-start; justify-content: space-between; min-height: 24px; }
+.agree .alabel { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.agree .alabel img { width: 24px; height: 24px; flex: none; }
+.agree .alabel span { font-weight: 500; font-size: 16px; line-height: 1.4; letter-spacing: -0.32px; opacity: .9; white-space: nowrap; padding-top: 0; }
+.agree .atoggle { width: 24px; height: 24px; flex: none; }
+.agree .atoggle img { width: 24px; height: 24px; display: block; transition: transform .2s; }
+.agree.open .atoggle img { transform: none; }
+.agree:not(.open) .atoggle img { transform: rotate(180deg); }
+.agree .abox { display: none; background: #f5f8fb; border-radius: 18px; padding: 18px; font-weight: 400; font-size: 14px; line-height: 1.5; letter-spacing: -0.28px; opacity: .8; margin: 0 -8px; }
+.agree.open .abox { display: block; }
+.flow-bottom { position: absolute; left: 0; bottom: 0; width: 375px; padding: 0 16px 18px; }
+.flow-bottom::before { content: ''; position: absolute; left: 0; right: 0; bottom: 78px; height: 52px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,.86) 46.6%, #fff 65.4%); pointer-events: none; }
+.flow-btn { display: block; width: 100%; padding: 18px 0; border-radius: 18px; background: #2b4095; color: #fff; font-family: inherit; font-weight: 500; font-size: 18px; line-height: 24px; text-align: center; white-space: nowrap; }
+.flow-btn:disabled { opacity: .35; cursor: default; }
+.flow-btn.outline { background: #fff; color: #2b4095; border: 1px solid #2b4095; padding: 17px 0; }
+.info-card { border: 1px solid #e1e4e9; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 24px; font-weight: 500; font-size: 16px; line-height: 1.5; letter-spacing: -0.32px; white-space: nowrap; }
+.info-card .r { display: flex; justify-content: space-between; align-items: center; }
+.info-card .k { opacity: .6; }
+.applied-txt { position: absolute; left: 0; top: 81px; width: 375px; padding: 0 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.applied-txt h2 { font-weight: 700; font-size: 30px; line-height: 34px; letter-spacing: 0.6px; color: #111; }
+.applied-txt p { font-weight: 500; font-size: 16px; line-height: 1.5; opacity: .6; }
+.applied-btns { position: absolute; left: 12px; top: 609px; width: 351px; display: flex; flex-direction: column; gap: 10px; }
+.back-game { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-weight: 500; font-size: 18px; line-height: 24px; color: #000; }
+.back-game img { width: 11.33px; height: 10px; }
+.flow-btn:active:not(:disabled), .back-game:active { opacity: .85; }
+
+/* ── 진입 화면 ─────────────────────────────────────── */
+.title-layer { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 48px; line-height: 56px; letter-spacing: -0.96px; text-align: center; white-space: nowrap; }
+.intro { position: absolute; left: 188.5px; top: 349px; transform: translate(-50%, -50%); color: #fff; font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; text-align: center; white-space: nowrap; }
+.big-btn { position: absolute; top: 423px; height: 44px; }
+.big-btn .label { position: absolute; font-family: var(--f-mono); font-size: 30.273px; line-height: 1; letter-spacing: -1.5136px; color: #000; white-space: nowrap; pointer-events: none; }
+.big-btn:active { transform: translateY(2px); }
+.bubble-text { position: absolute; left: 175.5px; top: 534px; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 12px; line-height: 1.2; letter-spacing: -0.24px; text-align: center; white-space: nowrap; color: #000; }
+
+/* ── 흰 팝업 박스 (TIP / 도감 / 경품 / 결과) ───────── */
+.wbox { position: absolute; background: #fff; border: 4px solid #000; padding: 6px; }
+.wbar { position: relative; height: 30px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.wbar .t-myungjo { font-family: var(--f-myungjo); font-size: 18px; letter-spacing: -0.36px; }
+.wbar .t-iyagi { font-family: var(--f-iyagi); font-size: 14px; letter-spacing: -0.28px; }
+.wx { position: absolute; right: 3px; top: 3px; width: 24px; height: 24px; background: #fff; overflow: hidden; }
+.wx img { display: block; width: 24px; height: 24px; }
+.dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .8); }
+.tip-sec { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tip-sec h4 { font-weight: normal; font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; padding: 2px 10px; border-bottom: 2px solid #000; }
+.tip-sec p { font-size: 14px; line-height: 1.3; letter-spacing: -0.28px; text-align: center; white-space: nowrap; }
+.hl { color: var(--blue); font-weight: normal; }
+
+/* ── 게임 화면 ─────────────────────────────────────── */
+.hdr-txt { position: absolute; left: 53px; top: 19px; height: 19px; display: flex; align-items: center; gap: 4px; white-space: nowrap; font-family: var(--f-iyagi); }
+.hud-txt { position: absolute; left: 20px; top: 66px; height: 35px; display: flex; align-items: center; gap: 20px; font-family: var(--f-iyagi); font-size: 20px; letter-spacing: -0.4px; white-space: nowrap; }
+.hud-txt .k { color: var(--yellow); }
+.hud-txt .v { color: #fff; margin-left: 12px; }
+.icon-btn { position: absolute; top: 10px; width: 36px; height: 35px; }
+.icon-btn:active { transform: translateY(1px); }
+#dex-btn { position: absolute; left: 226px; top: 66px; width: 132px; height: 35px; }
+#dex-btn:active { transform: translateY(1px); }
+#dex-btn .lbl { position: absolute; left: 80px; top: 17.5px; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 14px; letter-spacing: -0.28px; white-space: nowrap; color: #000; }
+#game-canvas { position: absolute; left: 12px; top: 119px; width: 351px; height: 639px; display: block; background: #000; touch-action: none; }
+.hp-layer { position: absolute; left: 0; top: 0; width: 355px; height: 47px; max-width: none; }
+#hp-empty { filter: grayscale(1) brightness(1.1); }
+#hp-text { position: absolute; left: 304px; top: 782px; display: flex; align-items: center; gap: 3px; font-size: 12px; letter-spacing: -0.24px; color: #000; white-space: nowrap; }
+#hp-text #hp-cur { color: var(--blue); font-weight: normal; }
+
+/* 도감 카드 / 알림 카드 */
+.drow { position: absolute; display: flex; align-items: center; gap: 16px; }
+.icol { position: relative; width: 27px; height: 34px; flex: none; }
+.icol .sp { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.tcol { width: 194px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.tag { display: block; height: 18px; line-height: 18px; padding-left: 6px; color: #fff; font-size: 11px; letter-spacing: -0.22px; white-space: nowrap; background-size: 100% 100%; }
+.tt { font-size: 15px; letter-spacing: -0.3px; line-height: normal; color: #000; }
+.td { font-size: 12px; letter-spacing: -0.24px; line-height: normal; color: #000; opacity: .5; white-space: nowrap; margin-top: -1px; }
+.tbody { display: flex; flex-direction: column; gap: 3px; }
+.dcard { position: relative; width: 316px; height: 68px; flex: none; }
+.dcard .px { left: 0; top: 0; width: 316px; height: 68px; --pxb: var(--blue); --pxf: #fff; }
+.dcard .drow { left: 10px; top: 6px; }
+.dcard .lockov { position: absolute; left: 2px; top: 2px; width: 312px; height: 64px; }
+.dcard .lockic { left: 50%; top: 50%; transform: translate(-50%, -50%); margin-left: .5px; margin-top: -.5px; }
+#dex-list { position: absolute; left: 14px; top: 155px; width: 316px; height: 400px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
+/* Total/획득 줄은 고정, 카드 목록만 스크롤 */
+#dex-cards { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 2px; }
+#dex-cards::-webkit-scrollbar { display: none; }
+.dex-sum { display: flex; justify-content: space-between; padding: 0 4px; font-size: 12px; letter-spacing: -0.24px; flex: none; }
+.dex-msg { position: absolute; left: 50%; top: 60px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 7px; width: 235px; }
+.dex-msg .lines { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 15px; letter-spacing: -0.3px; white-space: nowrap; line-height: normal; }
+.ducks { position: relative; width: 75px; height: 24px; }
+.foot-btn { position: absolute; top: 572px; height: 44px; overflow: hidden; font-family: var(--f-iyagi); font-size: 16px; letter-spacing: -0.32px; color: #000; white-space: nowrap; display: grid; place-items: center; }
+.foot-btn img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; pointer-events: none; }
+.foot-btn span { position: relative; line-height: 1; }
+.foot-btn:active:not(:disabled) { transform: translateY(2px); }
+.foot-btn:disabled { cursor: default; }
+
+#toast { position: absolute; left: 10px; top: 45px; width: 355px; height: 68px; pointer-events: none; }
+#toast .drow { left: 10px; top: 6px; }
+
+.end-btn { position: relative; width: 197px; height: 44px; overflow: hidden; font-family: var(--f-iyagi); font-size: 16px; display: grid; place-items: center; }
+.end-btn img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; pointer-events: none; }
+.end-btn span { position: relative; line-height: 1; }
+  </style>
+</head>
+<body>
+<div id="viewport"><div id="stage-box"><div id="stage">
+
+  <!-- ══════════ 1. 진입 화면 ══════════ -->
+  <section id="screen-entry" class="screen">
+    <img class="abs" src="assets/entry-bg.png" alt="" style="left:0;top:0;width:376px;height:812px">
+    <img class="abs" src="assets/title-banner.svg" alt="더케이 오락실" style="left:48.3px;top:26px;width:279.64px;height:42.43px">
+
+    <div class="title-layer" style="left:189px;top:231px;color:#0e4cff">레트로<br>벽돌깨기</div>
+    <div class="title-layer" style="left:187px;top:230px;color:var(--yellow)">레트로<br>벽돌깨기</div>
+
+    <p class="intro">아래 바를 한번 누르고<br>원하는 방향으로 움직이면서<br>벽돌을 깰 수 있어요.<br>떨어지는 아이템을 놓치지마세요 !</p>
+
+    <img class="abs" src="assets/bubble.png" alt="" style="left:61px;top:507px;width:228px;height:62px">
+    <p class="bubble-text">벽돌 깨고 아이템을 획득하면<br>경품을 받을 수 있어요 !</p>
+
+    <button id="btn-start" class="big-btn" style="left:61.5px;width:121px" aria-label="START">
+      <i class="sp" style="left:0;top:0;--w:66px;--h:44px;--iw:427.27%;--ih:213.64%;--il:-13.64%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i>
+      <i class="sp" style="left:56px;top:0;--w:65px;--h:44px;--iw:433.85%;--ih:213.64%;--il:-318.48%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i>
+      <span class="label" style="left:14px;top:6.86px">START</span>
+    </button>
+    <button id="btn-tip" class="big-btn" style="left:193.5px;width:120px" aria-label="TIP">
+      <i class="sp" style="left:0;top:0;--w:99px;--h:44px;--iw:278.79%;--ih:209.09%;--il:-7.07%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i>
+      <i class="sp" style="left:83px;top:0;--w:37px;--h:44px;--iw:745.95%;--ih:209.09%;--il:-627.03%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i>
+      <span class="label" style="left:31px;top:7px">TIP</span>
+    </button>
+
+    <!-- TIP 팝업 -->
+    <div id="tip-popup" class="wbox off" style="left:20px;top:487px;width:335px;height:226px;opacity:0">
+      <div class="wbar"><span class="t-myungjo">게임 TIP</span><button class="wx" id="tip-close" aria-label="닫기"><img src="assets/dex-close.svg" alt=""></button></div>
+      <div style="display:flex;flex-direction:column;gap:20px;margin:18px 7px 0">
+        <div class="tip-sec"><h4>경품 받기</h4><p>아이템을 3개 획득하면 경품 획득</p></div>
+        <div class="tip-sec"><h4>HP 지키기</h4><p>폭탄을 피하지 못하거나 공을 놓치면 HP 감소<br>HP가 모두 줄어들면 게임 오버 !</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 2. 게임 화면 ══════════ -->
+  <section id="screen-game" class="screen off" style="opacity:0">
+    <!-- 헤더 -->
+    <i class="sp" style="left:17px;top:13px;--w:27px;--h:29px;--iw:315.46%;--ih:100%;--il:-8.76%;--it:0"><img src="assets/mascot-sheet.png" alt=""></i>
+    <div class="hdr-txt"><span style="font-size:12px;color:#fff;letter-spacing:-0.24px">더케이 오락실</span><span style="font-size:16px;color:#fedd2c;letter-spacing:-0.32px">레트로 벽돌깨기</span></div>
+    <button id="btn-bgm" class="icon-btn" style="left:292px" aria-label="BGM 온/오프">
+      <i class="sp" style="left:0;top:0;--w:36px;--h:35px;--iw:382.14%;--ih:194.55%;--il:-75%;--it:-47.27%"><img src="assets/hdr-btn-bg.png" alt=""></i>
+      <i id="bgm-icon" class="sp" style="left:9px;top:7px;--w:18px;--h:19px;--iw:355.24%;--ih:172.79%;--il:-130.07%;--it:-37.07%"><img src="assets/icon-music.png" alt=""></i>
+    </button>
+    <button id="btn-close-game" class="icon-btn" style="left:329px" aria-label="게임 닫기">
+      <i class="sp" style="left:0;top:0;--w:36px;--h:35px;--iw:382.14%;--ih:194.55%;--il:-75%;--it:-47.27%"><img src="assets/hdr-btn-bg.png" alt=""></i>
+      <img class="abs" src="assets/icon-close.svg" alt="" style="left:9px;top:8px;width:18px;height:18px;pointer-events:none">
+    </button>
+
+    <!-- HUD -->
+    <div class="px" style="left:10px;top:56px;width:355px;height:55px"></div>
+    <div class="hud-txt">
+      <span><span class="k">STAGE</span><span class="v" id="hud-stage">1</span></span>
+      <span><span class="k">BRICKS</span><span class="v" id="hud-bricks">28</span></span>
+    </div>
+    <button id="dex-btn" aria-label="아이템 도감 열기">
+      <img class="abs" src="assets/dex-btn-bg.png" alt="" style="left:0;top:0;width:132px;height:35px;object-fit:cover">
+      <i class="sp" style="left:12px;top:8px;--w:25px;--h:19px;--iw:469.24%;--ih:300.55%;--il:-262.01%;--it:-183.79%"><img src="assets/icons-a.png" alt=""></i>
+      <span class="lbl">아이템 도감</span>
+    </button>
+
+    <!-- 게임 판 -->
+    <div class="px" style="left:10px;top:117px;width:355px;height:643px"></div>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HP -->
+    <div class="abs" style="left:10px;top:762px;width:355px;height:47px">
+      <img id="hp-empty" class="hp-layer" src="assets/hp-sheet.png" alt="">
+      <img id="hp-fill" class="hp-layer" src="assets/hp-sheet.png" alt="">
+      <img class="hp-layer" src="assets/hp-sheet.png" alt="" style="clip-path:inset(0 320px 0 0)">
+    </div>
+    <div id="hp-text"><b id="hp-cur">100</b><span>/</span><span>100</span></div>
+
+    <!-- 도감 등록 알림 -->
+    <div id="toast" class="off" style="opacity:0">
+      <img class="abs" src="assets/toast-frame.svg" alt="" style="left:0;top:0;width:353px;height:68px">
+      <div class="drow" id="toast-row"></div>
+    </div>
+
+  </section>
+
+  <!-- ══════════ 3. 게임 오버 / 올클리어 ══════════ -->
+  <section id="screen-end" class="screen off" style="opacity:0;background:#000">
+    <img class="abs" src="assets/end-sky.png" alt="" style="left:0;top:-19px;width:375px;height:850px;object-fit:cover;opacity:.3">
+    <img class="abs" src="assets/end-cabinet.png" alt="" style="left:-93px;top:173px;width:562px;height:843px;object-fit:cover">
+    <img class="abs" src="assets/title-banner.svg" alt="더케이 오락실" style="left:84.6px;top:274.56px;width:207.82px;height:31.53px">
+    <div class="end-title" id="end-title-b" style="left:187px;top:135px;color:#000"></div>
+    <div class="end-title" id="end-title-y" style="left:185px;top:131px;color:var(--yellow)"></div>
+    <div class="abs" style="left:42px;top:387px;width:290px;height:179px;overflow:hidden">
+      <img class="abs" src="assets/end-card.png" alt="" style="left:0;top:.5px;width:290px;height:179px;object-fit:cover">
+      <div class="end-stats"><div class="stat"><span class="stat-label">STAGE</span><span class="stat-num" id="end-stage">1</span></div><div class="stat"><span class="stat-label">ITEM</span><span class="stat-num" id="end-item">0</span></div></div>
+    </div>
+    <div class="end-msg"><div class="ducks" id="end-ducks"></div><div class="elines" id="end-lines"></div></div>
+    <button id="end-dex" class="abs big-btn" style="left:54px;top:698px;width:120px" aria-label="아이템 도감"><i class="sp" style="left:0px;top:0;--w:55px;--h:44px;--iw:501.82%;--ih:209.09%;--il:-12.73%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><i class="sp" style="left:55px;top:0;--w:39px;--h:44px;--iw:707.69%;--ih:209.09%;--il:-58.97%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><i class="sp" style="left:83px;top:0;--w:37px;--h:44px;--iw:745.95%;--ih:209.09%;--il:-627.03%;--it:-52.27%"><img src="assets/btn-tip-sheet.png" alt=""></i><span class="end-lbl">아이템 도감</span></button>
+    <button id="end-restart" class="abs big-btn" style="left:180px;top:698px;width:140px" aria-label="다시 도전하기"><i class="sp" style="left:0px;top:0;--w:66px;--h:44px;--iw:427.27%;--ih:213.64%;--il:-13.64%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><i class="sp" style="left:75px;top:0;--w:65px;--h:44px;--iw:433.85%;--ih:213.64%;--il:-318.48%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><i class="sp" style="left:63px;top:0;--w:44px;--h:44px;--iw:640.91%;--ih:213.64%;--il:-470.48%;--it:-54.55%"><img src="assets/btn-start-sheet.png" alt=""></i><span class="end-lbl" id="end-restart-label">다시 도전하기</span></button>
+  </section>
+
+    <!-- 아이템 도감 팝업 -->
+    <div id="dex-pop" class="abs off" style="inset:0;opacity:0">
+      <div class="dim"></div>
+      <div id="dex-box" class="abs" style="left:10px;top:103px;width:355px;height:627px">
+        <div class="wbox" style="left:0;top:0;width:355px;height:563px">
+          <div class="wbar">
+            <i class="sp" style="position:relative;--w:25px;--h:19px;--iw:469.24%;--ih:300.55%;--il:-262.01%;--it:-183.79%"><img src="assets/icons-a.png" alt=""></i>
+            <span class="t-iyagi">나의 아이템 도감</span>
+            <button class="wx" id="dex-close" aria-label="닫기"><img src="assets/dex-close.svg" alt=""></button>
+          </div>
+          <div class="dex-msg"><div class="ducks" id="dex-ducks"></div><div class="lines" id="dex-lines"></div></div>
+          <div id="dex-list"></div>
+        </div>
+        <button id="dex-resume" class="foot-btn" style="left:33px;width:86px"><img src="assets/btn-white.png" alt=""><span>계속하기</span></button>
+        <button id="dex-prize" class="foot-btn" style="left:125px;width:197px"><img id="dex-prize-bg" src="assets/btn-gray.png" alt="" style="height:149.24%;top:-24.62%;object-fit:fill"><span>본인인증 후 경품 받기</span></button>
+      </div>
+    </div>
+
+  <!-- ══════════ 4. 본인인증 플로우 ══════════ -->
+  <!-- 4-1. 약관 동의 -->
+  <section id="flow-consent" class="screen flow off" style="opacity:0">
+    <button class="flow-back" id="consent-back" aria-label="뒤로"><img src="assets/flow-back.svg" alt=""></button>
+    <div class="flow-col scroll">
+      <div class="flow-txt">
+        <h2>본인인증을 하려면<br>동의가 필요해요</h2>
+        <p>본인인증을 마치면 이벤트에 참여할 수 있어요.</p>
+      </div>
+      <img class="flow-idcard" src="assets/flow-idcard.png" alt="">
+      <div class="agree-list" id="agree-list"></div>
+    </div>
+    <div class="flow-bottom"><button class="flow-btn" id="consent-next" disabled>동의하고 계속하기</button></div>
+  </section>
+
+  <!-- 4-2. 본인인증 완료 -->
+  <section id="flow-done" class="screen flow off" style="opacity:0">
+    <button class="flow-back" id="done-back" aria-label="뒤로"><img src="assets/flow-back.svg" alt=""></button>
+    <div class="flow-col" style="gap:28px">
+      <div class="flow-txt"><h2 style="white-space:nowrap">본인인증을 완료했어요</h2></div>
+      <div class="info-card" id="info-card"></div>
+    </div>
+    <div class="flow-bottom"><button class="flow-btn" id="done-next">이벤트 참여하기</button></div>
+  </section>
+
+  <!-- 4-3. 경품 응모 완료 -->
+  <section id="flow-applied" class="screen flow off" style="opacity:0">
+    <div class="applied-txt">
+      <h2 id="applied-title">경품 응모가<br>완료되었습니다.</h2>
+      <p>당첨된 경품 안내사항은<br>개별적으로 연락 드릴 예정입니다.<br><br>획득한 저축 상품 아이템과<br>복지 혜택 아이템 내용이 더 궁금하다면?<br>아래 버튼으로 확인해보세요!</p>
+    </div>
+    <img class="abs" src="assets/flow-glow.svg" alt="" style="left:39px;top:345px;width:299px;height:209px">
+    <img class="abs" id="applied-duck" src="assets/flow-duck.png" alt="" style="left:28px;top:297px;width:320px;height:320px;object-fit:cover">
+    <div class="applied-btns">
+      <button class="flow-btn" id="applied-saving">장기저축급여 알아보기</button>
+      <button class="flow-btn outline" id="applied-benefit">공제회 회원 전용 혜택 모아보기</button>
+      <button class="back-game" id="applied-back"><img src="assets/flow-arrow-left.svg" alt=""><span>게임으로 돌아가기</span></button>
+    </div>
+  </section>
+
+</div></div></div>
+
+<script src="node_modules/gsap/dist/gsap.min.js"></script>
+<script>
+// ==========================================
+// 0. 화면 스케일 / 공용 헬퍼
+// ==========================================
+window.APP_SCALE = 1;
+const stageEl = document.getElementById('stage');
+const stageBox = document.getElementById('stage-box');
+function fitStage() {
+  const s = Math.min(window.innerWidth / 375, window.innerHeight / 812, 1.25);
+  window.APP_SCALE = s;
+  stageBox.style.width = (375 * s) + 'px';
+  stageBox.style.height = (812 * s) + 'px';
+  stageEl.style.transform = `scale(${s})`;
+}
+fitStage();
+
+const HAS_GSAP = typeof window.gsap !== 'undefined';
+// 팝업/화면 열기·닫기 (GSAP 있으면 트윈, 없으면 즉시 전환)
+function showEl(el, box) {
+  if (!el) return;
+  el.classList.remove('off');
+  if (HAS_GSAP) {
+    gsap.killTweensOf(el);
+    gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: 'power1.out' });
+    if (box && box !== el) { gsap.killTweensOf(box); gsap.fromTo(box, { y: 14, scale: 0.97 }, { y: 0, scale: 1, duration: 0.28, ease: 'back.out(1.5)', clearProps: 'transform' }); }
+  } else { el.style.opacity = 1; }
+}
+function hideEl(el, done) {
+  if (!el) return;
+  const fin = () => { el.classList.add('off'); if (done) done(); };
+  if (HAS_GSAP) { gsap.killTweensOf(el); gsap.to(el, { opacity: 0, duration: 0.15, onComplete: fin }); }
+  else { el.style.opacity = 0; fin(); }
+}
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (str) => String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+// 스프라이트 조각 마크업
+function sp(src, w, h, iw, ih, il, it, extra = '') {
+  return `<i class="sp" style="--w:${w}px;--h:${h}px;--iw:${iw}%;--ih:${ih}%;--il:${il}%;--it:${it}%;${extra}"><img src="${src}" alt=""></i>`;
+}
+// 태그 배경(2px 모서리 깎인 사각형) — 글자 수에 따라 너비가 달라짐
+function tagWidth(text) {
+  let n = 0, s = 0;
+  for (const ch of text) { if (ch === ' ') s++; else n++; }
+  return 12 + 11 * n + 5 * s;
+}
+function tagHtml(text, fill = '#FF0000') {
+  const w = tagWidth(text);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='18' viewBox='0 0 ${w} 18' preserveAspectRatio='none'><path d='M${w - 2} 2H${w}V16H${w - 2}V18H2V16H0V2H2V0H${w - 2}V2Z' fill='${fill}'/></svg>`;
+  return `<span class="tag" style="width:${w}px;background-image:url(&quot;data:image/svg+xml,${encodeURIComponent(svg)}&quot;)">${escapeHtml(text)}</span>`;
+}
+
+// ==========================================
+// 1. 8비트 레트로 신시사이저 오디오 엔진 (참고용 그대로)
+// ==========================================
+class RetroAudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.isMuted = false;
+    this.isBgmPlaying = false;
+    this.bgmTimer = null;
+    this.currentNoteIndex = 0;
+    this.volume = 0.25;
+  }
+
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
+  playTone(freq, type = 'square', duration = 0.08, gainVal = 0.1, pitchBend = 0) {
+    if (this.isMuted || !this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      if (pitchBend !== 0) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(10, freq + pitchBend), this.ctx.currentTime + duration);
+      }
+      gain.gain.setValueAtTime(gainVal * this.volume, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch (e) {}
+  }
+
+  playPaddleHit() { this.init(); this.playTone(320, 'triangle', 0.06, 0.12, 50); }
+  playBrickHit() { this.init(); this.playTone(580, 'square', 0.05, 0.09, 100); }
+  playCatchItem() {
+    this.init();
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'triangle', 0.12, 0.15, 30), i * 50);
+    });
+  }
+  playBadItem() {
+    this.init();
+    this.playTone(300, 'sawtooth', 0.12, 0.15, -120);
+    setTimeout(() => this.playTone(220, 'sawtooth', 0.15, 0.15, -80), 90);
+  }
+  playLoseLife() {
+    this.init();
+    [350, 300, 240, 180].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.15, 0.14, -50), i * 90);
+    });
+  }
+  playVictory() {
+    this.init();
+    [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'square', 0.2, 0.18), i * 80);
+    });
+  }
+
+  toggleBgm() {
+    if (this.isBgmPlaying) { this.stopBgm(); return false; }
+    this.startBgm();
+    return true;
+  }
+
+  startBgm() {
+    if (this.isBgmPlaying || this.isMuted) return;
+    this.init();
+    this.isBgmPlaying = true;
+    this.currentNoteIndex = 0;
+
+    // 경쾌한 아케이드 칩튠 아르페지오 멜로디
+    const notes = [
+      523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.00, 698.46,
+      659.25, 783.99, 1046.5, 783.99, 587.33, 493.88, 587.33, 659.25
+    ];
+
+    const playNext = () => {
+      if (!this.isBgmPlaying || this.isMuted) return;
+      const f = notes[this.currentNoteIndex];
+      this.playTone(f, 'square', 0.12, 0.04);
+      this.playTone(f / 2, 'triangle', 0.1, 0.03);
+      this.currentNoteIndex = (this.currentNoteIndex + 1) % notes.length;
+      this.bgmTimer = setTimeout(playNext, 160);
+    };
+    playNext();
+  }
+
+  stopBgm() {
+    this.isBgmPlaying = false;
+    if (this.bgmTimer) { clearTimeout(this.bgmTimer); this.bgmTimer = null; }
+  }
+}
+
+const audio = new RetroAudioEngine();
+
+// ==========================================
+// 2. 게임 데이터 (참고용 로직 그대로, 도감 문구/아이콘만 디자인 기준)
+// ==========================================
+// 선물은 도감 등록 + HP 회복만 있는 단일 아이템
+const GIFT_ITEM = { id: 'gift', name: '선물', type: 'GIFT' };
+// 폭탄은 HP 감소만 있는 단일 아이템
+const BOMB_ITEM = { id: 'bomb', name: '폭탄', type: 'BOMB' };
+
+// 벽돌 파괴 시 떨어지는 선물/폭탄 롤
+class ItemManager {
+  rollDropItem() {
+    if (Math.random() > DROP_CHANCE) return null;
+    // 선물 50%, 폭탄 50%
+    return Math.random() < GIFT_RATIO ? { ...GIFT_ITEM, isGood: true } : { ...BOMB_ITEM, isGood: false };
+  }
+}
+
+// 아이템 드롭 제어: 확률 + 화면당 1개 제한 + 쿨다운 / 스테이지당 선물·폭탄 최소 노출 보장
+const GIFT_RATIO = 0.5;          // 떨어지는 것 중 선물 비율 (나머지는 폭탄) — 선물:폭탄 = 5:5
+const MIN_GIFTS_PER_STAGE = 2;
+const MAX_GIFTS_PER_STAGE = 3;
+const MIN_BOMBS_PER_STAGE = 2;
+const MAX_BOMBS_PER_STAGE = 3;
+const GUARANTEE_BRICKS_PER_ITEM = 7; // 부족한 선물·폭탄 1개당, 남은 벽돌이 이 수 이하가 되면 강제로 떨어뜨림
+const START_HINT_TEXT = '화면 클릭하면 게임 시작!';  // 공 발사 전 화면 가운데 안내
+const MAX_STAGE = 3;             // 마지막 스테이지 (3단계를 깨면 ALL CLEAR)
+const DROP_CHANCE = 0.18;        // 벽돌 1개 파괴 시 드롭 확률
+const DROP_COOLDOWN_SEC = 3.0;   // 직전 아이템이 사라진 뒤 다음 드롭까지 대기 시간
+const ITEM_SIZE = 36;            // 떨어지는 선물/폭탄 크기 (디자인 36px)
+
+// 생명력(HP) 설정
+const HP_MAX = 100;
+const HP_GIFT_HEAL = 30;         // 선물 획득 시 회복
+const HP_BOMB_DAMAGE = 25;       // 폭탄 획득 시 감소
+const HP_BALL_LOST_DAMAGE = 30;  // 공을 놓쳤을 때 감소 (회복 없이 4번 놓치면 게임 오버)
+const DAMAGE_FLASH_SEC = 0.5;    // HP 감소 시 화면 흔들림·붉은 번쩍임 지속 시간
+
+// 도감 아이콘 크롭 값 (피그마 스프라이트 시트 기준). 시트: a = icons-a, c = icons-c
+const SHEETS = { a: 'assets/icons-a.png', c: 'assets/icons-c.png' };
+// 선물을 받으면 도감에 등록되는 혜택 아이템 목록
+const COUPON_POOL = [
+  { id: 'cp_saving',   tag: '제도',        title: '장기저축급여',       desc: '급여율 5.0%, 연복리로 목돈 불리기',        ic: ['a', 23, 25, 541.58, 253.52, -308.43, -42.73] },
+  { id: 'cp_split',    tag: '제도',        title: '분할급여금',         desc: '모은만큼 퇴직 후 월급처럼 받기',           ic: ['a', 23, 25, 541.58, 253.52, -421.82, -40.01] },
+  { id: 'cp_increase', tag: '제도',        title: '증좌',               desc: '여윳돈 생길 때마다 증좌로 미래 채우기',     ic: ['a', 23, 25, 541.58, 253.52, -14.33, -138.61] },
+  { id: 'cp_movie',    tag: '문화 혜택',   title: '영화표 할인',        desc: '보고싶은 영화 365일 할인받고 보기',         ic: ['a', 27, 25, 541.58, 294.09, -115.84, -176.61] },
+  { id: 'cp_travel',   tag: '여행 혜택',   title: '숙박 및 교통 할인',  desc: '숙박⋅교통 할인으로 여행 경비 줄이기',       ic: ['a', 23, 31, 635.77, 237.17, -256.51, -127.91] },
+  { id: 'cp_golf',     tag: '레저 혜택',   title: '골프장 회원가 이용', desc: '골프장 회원가로 취미 생활 즐기기',          ic: ['c', 27, 25, 518.75, 276.67, -107.12, -50.35] },
+  { id: 'cp_wedding',  tag: '축하금 제공', title: '결혼축하금',         desc: '새 출발 축하금 받기',                       ic: ['c', 27, 25, 518.75, 276.67, -203.1, -52.77] },
+  { id: 'cp_mind',     tag: '건강 지원',   title: 'The-K 마음쉼',       desc: '마음이 복잡할 때 1:1 상담 받기',            ic: ['c', 29, 25, 482.97, 276.67, -334.21, -157.83] },
+  { id: 'cp_checkup',  tag: '건강 지원',   title: '건강검진',           desc: '제휴 검진기관에서 할인받고 건강 챙기기',    ic: ['c', 27, 25, 518.75, 276.67, -23.51, -154.61] },
+  { id: 'cp_consult',  tag: '생활 지원',   title: '무료 전문 상담',     desc: '법률⋅노무⋅세무 상담 무료로 받기',          ic: ['c', 27, 25, 518.75, 276.67, -248.45, -160.59] }
+];
+
+// 닫기 버튼 설정 — 브라우저가 창 닫기를 막을 때 이동할 주소 (비어 있으면 이전 페이지로)
+const CLOSE_CONFIG = { fallbackUrl: '' };
+
+// 경품 응모 완료 화면의 버튼 링크 — 주소 확정 시 입력 (비어 있으면 아무 동작 없음)
+const FLOW_LINKS = { saving: '', benefit: '' };
+// 본인인증 완료 화면에 보여줄 값 (디자인 시안용 샘플) — 실제 인증 연동 시 인증 결과로 교체
+const VERIFY_SAMPLE = { name: '덕혜이', phone: '010-0000-0000', birth: '1990.01.01' };
+// 응모 완료 기록 저장 키
+const PRIZE_APPLIED_KEY = 'KTCU_BREAKER_PRIZE_APPLIED_V1';
+
+const PRIZE_CONFIG = {
+  requiredCoupons: 3,
+  prizeName: '경품',            // 예: '커피 쿠폰' — 확정 시 교체
+};
+
+// 아이템 도감 — 여러 판에 걸쳐 누적 (브라우저 저장소)
+class CouponWallet {
+  constructor() {
+    this.ids = [];
+    try {
+      const saved = JSON.parse(localStorage.getItem('KTCU_BREAKER_COUPONS_V1') || '[]');
+      if (Array.isArray(saved)) this.ids = saved.filter(id => COUPON_POOL.some(c => c.id === id));
+    } catch (e) {}
+  }
+
+  save() {
+    try { localStorage.setItem('KTCU_BREAKER_COUPONS_V1', JSON.stringify(this.ids)); } catch (e) {}
+  }
+
+  // 새로 시작할 때 도감을 전부 미획득으로 되돌림
+  reset() { this.ids = []; this.save(); }
+
+  get count() { return this.ids.length; }
+  get isPrizeReady() { return this.count >= PRIZE_CONFIG.requiredCoupons; }
+
+  // 아직 없는 아이템을 우선 지급, 모두 모았으면 null
+  grant() {
+    const remaining = COUPON_POOL.filter(c => !this.ids.includes(c.id));
+    if (remaining.length === 0) return null;
+    const coupon = remaining[Math.floor(Math.random() * remaining.length)];
+    this.ids.push(coupon.id);
+    this.save();
+    return coupon;
+  }
+}
+
+// ==========================================
+// 3. 캔버스용 이미지 / 스프라이트 좌표
+// ==========================================
+const IMG = {};
+const IMG_SRC = {
+  bricks: 'assets/bricks-sheet.png',
+  icons: 'assets/icons-a.png',
+  bombFrame: 'assets/item-bomb-frame.svg',
+  giftFrame: 'assets/item-gift-frame.svg'
+};
+function loadImages() {
+  return Promise.all(Object.entries(IMG_SRC).map(([k, src]) => new Promise(res => {
+    const im = new Image();
+    im.onload = im.onerror = () => res();
+    im.src = src;
+    IMG[k] = im;
+  })));
+}
+// bricks-sheet.png(2172×724)에서 3번째 열의 색상별 행 — 디자인 순서(분홍·파랑·노랑·빨강)에 이어 초록·보라
+const BRICK_SRC = { x: 626, w: 216, h: 87 };
+const BRICK_ROWS = [
+  { y: 508, color: '#FF2D9B' },  // 분홍
+  { y: 337, color: '#1E78FF' },  // 파랑
+  { y: 173, color: '#FFC21A' },  // 노랑
+  { y: 12,  color: '#FF1A1A' },  // 빨강
+  { y: 255, color: '#27C93F' },  // 초록
+  { y: 420, color: '#9B30F0' }   // 보라
+];
+// icons-a.png(1774×887) 안의 폭탄/선물 영역 — [sx, sy, sw, sh, 프레임 안 x, y, 폭, 높이]
+const ITEM_ICON = {
+  bomb: { sx: 43, sy: 55, sw: 333, sh: 408, dx: 7, dy: 3, dw: 22, dh: 27 },
+  gift: { sx: 374, sy: 92, sw: 302, sh: 408, dx: 8, dy: 3, dw: 20, dh: 27 }
+};
+// 떠오르는 "HP ±N" 문구 옆 아이콘
+const FLOAT_ICON = {
+  bomb: { sx: 22, sy: 55, sw: 363, sh: 408, dw: 24, dh: 27 },
+  gift: { sx: 375, sy: 142, sw: 318, sh: 333, dw: 21, dh: 22 }
+};
+const FONT_FLOAT = "'DOSIyagiBoldface', 'DOSGothic', sans-serif";
+
+// ==========================================
+// 4. 도트 벽돌깨기 핵심 게임 엔진 (참고용 로직 그대로, 크기·그리기만 디자인 기준)
+// ==========================================
+class BrickBreakerGame {
+  constructor(canvas, itemManager, couponWallet, onStateChange, onNotifyItem) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.itemManager = itemManager;
+    this.couponWallet = couponWallet;
+    this.onStateChange = onStateChange;
+    this.onNotifyItem = onNotifyItem;
+
+    this.width = 351;
+    this.height = 639;
+
+    // 게임 상태
+    this.stage = 1;
+    this.hp = HP_MAX;
+    this.lastHpDelta = 0;
+    this.damageFlash = 0;
+    this.isPlaying = false;
+    this.isPaused = false;
+    this.isGameOver = false;
+    this.isVictory = false;
+
+    // 패들 상태 (디자인: 74×8 바)
+    this.paddle = { x: 140, y: 568, width: 74, baseWidth: 74, height: 8, speed: 400, moveDir: 0 };
+
+    // 공들 목록 (멀티볼 지원)
+    this.balls = [];
+    this.ballAttached = true; // 시작 시 패들에 붙어있음
+
+    // 벽돌 목록
+    this.bricks = [];
+
+    // 떨어지는 선물/폭탄 (한 번에 최대 1개)
+    this.fallingItems = [];
+    this.dropCooldown = 0;
+    this.isStageClearing = false;
+
+    // 파티클 & 플로팅 텍스트
+    this.particles = [];
+    this.floatingTexts = [];
+
+    this.lastTime = 0;
+    this.animationFrameId = null;
+
+    this.resizeCanvas();
+  }
+
+  // 디자인 좌표계(351×639)는 고정, 화면 배율·DPR만큼 해상도를 올려 또렷하게 그림
+  resizeCanvas() {
+    const w = this.canvas.clientWidth || 351;
+    const h = this.canvas.clientHeight || 639;
+    const k = (window.devicePixelRatio || 1) * (window.APP_SCALE || 1);
+    this.canvas.width = Math.round(w * k);
+    this.canvas.height = Math.round(h * k);
+    this.ctx.setTransform(k, 0, 0, k, 0, 0);
+    this.width = w;
+    this.height = h;
+    this.paddle.y = this.height - 71;
+  }
+
+  start() {
+    this.stage = 1;
+    this.hp = HP_MAX;
+    this.lastHpDelta = 0;
+    this.damageFlash = 0;
+    this.isPlaying = true;
+    this.isPaused = false;
+    this.isGameOver = false;
+    this.isVictory = false;
+    this.fallingItems = [];
+    this.particles = [];
+    this.floatingTexts = [];
+    this.dropCooldown = 0;
+    this.isStageClearing = false;
+
+    this.initStage(this.stage);
+    this.resetBallAndPaddle();
+
+    this.lastTime = performance.now();
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+    this.loop(this.lastTime);
+    this.triggerStateUpdate();
+  }
+
+  // 스테이지별 차이는 벽돌 개수뿐: 1단계 4줄(28개)부터 1줄(7개)씩 늘어 3단계 6줄(42개), 모든 벽돌 1번에 깨짐
+  initStage(stageNum) {
+    this.bricks = [];
+    this.stageGiftDrops = 0;
+    this.stageBombDrops = 0;
+    const rows = 3 + stageNum;
+    const cols = 7;
+    const marginX = 12, gapX = 2.6;
+    const brickW = (this.width - marginX * 2 - gapX * (cols - 1)) / cols;
+    const brickH = 17.76, pitchY = 21.6, offsetY = 14;
+
+    for (let r = 0; r < rows; r++) {
+      const row = BRICK_ROWS[r % BRICK_ROWS.length];
+      for (let c = 0; c < cols; c++) {
+        this.bricks.push({
+          x: marginX + c * (brickW + gapX),
+          y: offsetY + r * pitchY,
+          width: brickW,
+          height: brickH,
+          hp: 1,
+          maxHp: 1,
+          srcY: row.y,
+          color: row.color
+        });
+      }
+    }
+  }
+
+  resetBallAndPaddle() {
+    this.paddle.width = this.paddle.baseWidth;
+    this.paddle.x = (this.width - this.paddle.width) / 2;
+    this.ballAttached = true;
+
+    this.balls = [{
+      x: this.paddle.x + this.paddle.width / 2,
+      y: this.paddle.y - 6,
+      radius: 6,
+      vx: 180,
+      vy: -260,
+      speed: 320
+    }];
+  }
+
+  launchBall() {
+    if (!this.isPlaying || this.isGameOver) return;
+    if (this.ballAttached) {
+      this.ballAttached = false;
+      // 약간의 랜덤 각도로 발사
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+      const speed = 320;
+      this.balls[0].vx = Math.cos(angle) * speed;
+      this.balls[0].vy = Math.sin(angle) * speed;
+      audio.playPaddleHit();
+    }
+  }
+
+  movePaddleLeft(isDown) { this.paddle.moveDir = isDown ? -1 : 0; }
+  movePaddleRight(isDown) { this.paddle.moveDir = isDown ? 1 : 0; }
+
+  setPaddleX(targetX) {
+    this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, targetX - this.paddle.width / 2));
+    if (this.ballAttached && this.balls[0]) {
+      this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+    }
+  }
+
+  // 스와이프용 상대 이동 (손가락 이동량만큼 패들 이동)
+  movePaddleBy(dx) {
+    this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, this.paddle.x + dx));
+    if (this.ballAttached && this.balls[0]) {
+      this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+    }
+  }
+
+  // --- 업데이트 및 물리 엔진 ---
+  update(deltaSec) {
+    if (!this.isPlaying || this.isGameOver) return;
+
+    // 1. 패들 이동
+    const pSpeed = this.paddle.speed;
+    if (this.paddle.moveDir !== 0) {
+      this.paddle.x += this.paddle.moveDir * pSpeed * deltaSec;
+      this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, this.paddle.x));
+      if (this.ballAttached && this.balls[0]) {
+        this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+      }
+    }
+
+    // 2. 공 업데이트 & 충돌 판정
+    if (!this.ballAttached && !this.isStageClearing) {
+      this.updateBalls(deltaSec);
+    }
+
+    // 3. 떨어지는 선물/폭탄 업데이트 & 패들 캐치
+    if (this.dropCooldown > 0) this.dropCooldown = Math.max(0, this.dropCooldown - deltaSec);
+    for (let i = this.fallingItems.length - 1; i >= 0; i--) {
+      const item = this.fallingItems[i];
+      item.y += item.vy * deltaSec;
+
+      // 패들과 충돌 (아이템 캐치!)
+      if (item.y + item.size >= this.paddle.y && item.y <= this.paddle.y + this.paddle.height &&
+          item.x + item.size >= this.paddle.x && item.x <= this.paddle.x + this.paddle.width) {
+        this.fallingItems.splice(i, 1);
+        this.dropCooldown = DROP_COOLDOWN_SEC;
+        this.applyItem(item);
+        continue;
+      }
+
+      if (item.y > this.height) {
+        this.fallingItems.splice(i, 1);
+        this.dropCooldown = DROP_COOLDOWN_SEC;
+      }
+    }
+
+    // 4. 파티클·피해 연출 타이머
+    this.updateParticles(deltaSec);
+
+    // 스테이지 클리어 확인
+    if (this.bricks.length === 0) {
+      this.stageClear();
+    }
+  }
+
+  updateBalls(deltaSec) {
+    for (let i = this.balls.length - 1; i >= 0; i--) {
+      const ball = this.balls[i];
+      ball.x += ball.vx * deltaSec;
+      ball.y += ball.vy * deltaSec;
+
+      // 좌우 벽 튕김
+      if (ball.x - ball.radius < 0) {
+        ball.x = ball.radius;
+        ball.vx = Math.abs(ball.vx);
+        audio.playPaddleHit();
+      } else if (ball.x + ball.radius > this.width) {
+        ball.x = this.width - ball.radius;
+        ball.vx = -Math.abs(ball.vx);
+        audio.playPaddleHit();
+      }
+
+      // 상단 벽 튕김
+      if (ball.y - ball.radius < 0) {
+        ball.y = ball.radius;
+        ball.vy = Math.abs(ball.vy);
+        audio.playPaddleHit();
+      }
+
+      // 패들 튕김 판정
+      if (ball.y + ball.radius >= this.paddle.y && ball.y - ball.radius <= this.paddle.y + this.paddle.height &&
+          ball.x >= this.paddle.x - ball.radius && ball.x <= this.paddle.x + this.paddle.width + ball.radius && ball.vy > 0) {
+
+        // 패들 맞은 위치에 따른 각도 계산 (-60도 ~ +60도)
+        const hitPos = (ball.x - (this.paddle.x + this.paddle.width / 2)) / (this.paddle.width / 2);
+        const maxAngle = Math.PI * 0.38;
+        const angle = hitPos * maxAngle - Math.PI / 2;
+        const curSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+
+        ball.vx = Math.cos(angle) * curSpeed;
+        ball.vy = Math.sin(angle) * curSpeed;
+        ball.y = this.paddle.y - ball.radius - 1;
+
+        audio.playPaddleHit();
+        this.createPaddleHitParticles(ball.x, ball.y);
+      }
+
+      // 바닥 추락 판정
+      if (ball.y - ball.radius > this.height) {
+        this.balls.splice(i, 1);
+      }
+
+      // 벽돌 충돌 검사
+      this.checkBrickCollision(ball);
+    }
+
+    // 공이 모두 사라졌을 때
+    if (this.balls.length === 0) {
+      this.loseLife();
+    }
+  }
+
+  checkBrickCollision(ball) {
+    for (let i = this.bricks.length - 1; i >= 0; i--) {
+      const br = this.bricks[i];
+      if (ball.x + ball.radius >= br.x && ball.x - ball.radius <= br.x + br.width &&
+          ball.y + ball.radius >= br.y && ball.y - ball.radius <= br.y + br.height) {
+        // 상하좌우 반사 판정
+        const overlapLeft = (ball.x + ball.radius) - br.x;
+        const overlapRight = (br.x + br.width) - (ball.x - ball.radius);
+        const overlapTop = (ball.y + ball.radius) - br.y;
+        const overlapBottom = (br.y + br.height) - (ball.y - ball.radius);
+
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+        if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+          ball.vx = -ball.vx;
+        } else {
+          ball.vy = -ball.vy;
+        }
+
+        this.damageBrick(i);
+        break;
+      }
+    }
+  }
+
+  damageBrick(index) {
+    const br = this.bricks[index];
+    br.hp--;
+    audio.playBrickHit();
+    this.createBrickParticles(br.x + br.width / 2, br.y + br.height / 2, br.color);
+
+    if (br.hp <= 0) {
+      this.bricks.splice(index, 1);
+
+      // 아이템 드롭 — 화면에 아이템이 없고 쿨다운이 끝났을 때만 확률로 롤
+      const noneFalling = this.fallingItems.length === 0;
+      const canDrop = noneFalling && this.dropCooldown <= 0;
+      // 최소 개수 보장: 남은 벽돌이 부족해지면 쿨다운과 관계없이 모자란 쪽(선물/폭탄)을 떨어뜨림
+      const giftsNeeded = Math.max(0, MIN_GIFTS_PER_STAGE - this.stageGiftDrops);
+      const bombsNeeded = Math.max(0, MIN_BOMBS_PER_STAGE - this.stageBombDrops);
+      const totalNeeded = giftsNeeded + bombsNeeded;
+      const mustDrop = totalNeeded > 0 && noneFalling && this.bricks.length > 0 &&
+        this.bricks.length <= totalNeeded * GUARANTEE_BRICKS_PER_ITEM;
+      let drop = null;
+      if (mustDrop) {
+        const giveGift = giftsNeeded === bombsNeeded ? Math.random() < GIFT_RATIO : giftsNeeded > bombsNeeded;
+        drop = giveGift ? { ...GIFT_ITEM, isGood: true } : { ...BOMB_ITEM, isGood: false };
+      } else if (canDrop) {
+        drop = this.itemManager.rollDropItem();
+      }
+      // 최대 개수 제한: 그 종류가 이미 최대만큼 떨어졌으면 이번 드롭은 건너뜀
+      if (drop && drop.isGood && this.stageGiftDrops >= MAX_GIFTS_PER_STAGE) drop = null;
+      if (drop && !drop.isGood && this.stageBombDrops >= MAX_BOMBS_PER_STAGE) drop = null;
+      if (drop) {
+        if (drop.isGood) this.stageGiftDrops++;
+        else this.stageBombDrops++;
+        this.fallingItems.push({
+          ...drop,
+          x: br.x + br.width / 2 - ITEM_SIZE / 2,
+          y: br.y,
+          size: ITEM_SIZE,
+          vy: 140
+        });
+      }
+    }
+    this.triggerStateUpdate();
+  }
+
+  applyItem(item) {
+    if (item.isGood) audio.playCatchItem();
+    else audio.playBadItem();
+
+    // 선물: 도감 아이템 등록 + HP 회복 / 폭탄: HP 감소
+    if (!item.isGood) {
+      this.takeDamage(HP_BOMB_DAMAGE, 'bomb', item.x + item.size / 2, this.paddle.y);
+      return;
+    }
+    const coupon = this.couponWallet.grant();
+    this.onNotifyItem(item, coupon);
+    this.addFloatingText(`HP +${HP_GIFT_HEAL}`, this.width / 2, this.height * 0.45, '#fedb1f', 18, 'gift');
+    this.changeHp(HP_GIFT_HEAL);
+  }
+
+  // HP 증감 (양수 회복, 음수 감소). 0이 되면 게임 오버
+  changeHp(delta) {
+    this.hp = Math.max(0, Math.min(HP_MAX, this.hp + delta));
+    this.lastHpDelta = delta;
+    if (this.hp <= 0 && !this.isGameOver) {
+      this.gameOver(false);
+      return;
+    }
+    this.triggerStateUpdate();
+  }
+
+  // HP 감소 공통 연출: 화면 흔들림 + 붉은 테두리 번쩍임 + "HP -N" 문구 + 파편
+  takeDamage(amount, icon, x, y) {
+    this.damageFlash = DAMAGE_FLASH_SEC;
+    this.addFloatingText(`HP -${amount}`, this.width / 2, this.height * 0.45, '#ff0000', 18, icon);
+    for (let i = 0; i < 18; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 320,
+        vy: -Math.random() * 260 - 40,
+        life: 0.7,
+        maxLife: 0.7,
+        color: i % 2 ? '#FF1744' : '#FF9100',
+        size: Math.random() * 5 + 3
+      });
+    }
+    this.changeHp(-amount);
+  }
+
+  loseLife() {
+    audio.playLoseLife();
+    this.takeDamage(HP_BALL_LOST_DAMAGE, null, this.paddle.x + this.paddle.width / 2, this.height - 10);
+    if (!this.isGameOver) this.resetBallAndPaddle();
+  }
+
+  stageClear() {
+    // 다음 스테이지 준비 중 매 프레임 재호출되어 스테이지가 연속 증가하는 것을 방지
+    if (this.isStageClearing) return;
+    this.isStageClearing = true;
+    this.fallingItems = [];
+    this.dropCooldown = 0;
+    audio.playVictory();
+
+    // 마지막 스테이지를 깨면 ALL CLEAR 후 결과 화면
+    if (this.stage >= MAX_STAGE) {
+      this.addFloatingText('ALL CLEAR!', this.width / 2, this.height / 2, '#fedb1f', 24);
+      setTimeout(() => this.gameOver(true), 1200);
+      return;
+    }
+
+    this.stage++;
+    // 디자인의 "공 속도 +20%" 문구만 표시 (실제 속도 변화는 없음)
+    this.addFloatingText('공 속도 +20%', this.width / 2, this.height * 0.45, '#fedb1f', 18);
+    setTimeout(() => {
+      this.initStage(this.stage);
+      this.resetBallAndPaddle();
+      this.isStageClearing = false;
+      this.triggerStateUpdate();
+    }, 1200);
+  }
+
+  gameOver(victory = false) {
+    this.isGameOver = true;
+    this.isPlaying = false;
+    this.isVictory = victory;
+    if (!victory) audio.playLoseLife();
+    this.triggerStateUpdate();
+  }
+
+  triggerStateUpdate() {
+    if (this.onStateChange) {
+      this.onStateChange({
+        stage: this.stage,
+        hp: this.hp,
+        hpDelta: this.lastHpDelta,
+        bricksLeft: this.bricks.length,
+        isGameOver: this.isGameOver,
+        isVictory: this.isVictory
+      });
+    }
+  }
+
+  loop(time) {
+    if (!this.isPlaying || this.isGameOver) return;
+    const deltaTime = Math.min(0.05, (time - this.lastTime) / 1000);
+    this.lastTime = time;
+
+    if (!this.isPaused) this.update(deltaTime);
+    this.render();
+
+    this.animationFrameId = requestAnimationFrame(t => this.loop(t));
+  }
+
+  // --- 렌더링 ---
+  render() {
+    const { ctx } = this;
+    ctx.clearRect(0, 0, this.width, this.height);
+    const dmg = this.damageFlash > 0 ? this.damageFlash / DAMAGE_FLASH_SEC : 0;
+    ctx.save();
+    if (dmg > 0) {
+      const amp = 7 * dmg;
+      ctx.translate((Math.random() - 0.5) * amp * 2, (Math.random() - 0.5) * amp * 2);
+    }
+
+    // 1. 배경
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-10, -10, this.width + 20, this.height + 20);
+
+    // 2. 벽돌 (스프라이트)
+    for (const br of this.bricks) {
+      ctx.drawImage(IMG.bricks, BRICK_SRC.x, br.srcY, BRICK_SRC.w, BRICK_SRC.h, br.x, br.y, br.width, br.height);
+    }
+
+    // 3. 패들 (디자인: 민트색 바)
+    ctx.fillStyle = '#00FFD3';
+    ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
+
+    // 4. 공 (디자인: 노란 원)
+    ctx.fillStyle = '#FEF600';
+    for (const ball of this.balls) {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 5. 떨어지는 선물/폭탄: 팔각 프레임 + 아이콘
+    for (const item of this.fallingItems) {
+      const key = item.isGood ? 'gift' : 'bomb';
+      const ic = ITEM_ICON[key];
+      ctx.drawImage(item.isGood ? IMG.giftFrame : IMG.bombFrame, item.x, item.y, item.size, item.size);
+      ctx.drawImage(IMG.icons, ic.sx, ic.sy, ic.sw, ic.sh, item.x + ic.dx, item.y + ic.dy, ic.dw, ic.dh);
+    }
+
+    // 6. 파티클
+    this.renderParticles(ctx);
+    ctx.restore();
+
+    // 7. 피해 시 붉은 비네트
+    if (dmg > 0) {
+      const g = ctx.createRadialGradient(this.width / 2, this.height / 2, this.height * 0.25, this.width / 2, this.height / 2, this.height * 0.75);
+      g.addColorStop(0, 'rgba(255, 23, 68, 0)');
+      g.addColorStop(1, `rgba(255, 23, 68, ${0.6 * dmg})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
+    this.renderFloatingTexts(ctx);
+
+    // 8. 공 발사 전 시작 안내
+    if (this.ballAttached && this.isPlaying && !this.isGameOver && !this.isStageClearing && !this.isPaused) {
+      ctx.save();
+      ctx.font = `18px ${FONT_FLOAT}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fedb1f';
+      ctx.fillText(START_HINT_TEXT, this.width / 2, this.height / 2);
+      ctx.restore();
+    }
+  }
+
+  createBrickParticles(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 160,
+        vy: (Math.random() - 0.5) * 160,
+        color,
+        life: 0.35,
+        maxLife: 0.35,
+        size: Math.random() * 4 + 2
+      });
+    }
+  }
+
+  createPaddleHitParticles(x, y) {
+    for (let i = 0; i < 6; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 120,
+        vy: -Math.random() * 80 - 20,
+        color: '#00FFD3',
+        life: 0.25,
+        maxLife: 0.25,
+        size: 3
+      });
+    }
+  }
+
+  addFloatingText(text, x, y, color = '#FFFFFF', size = 18, icon = null) {
+    this.floatingTexts.push({ text, x, y, color, size, icon, life: 1.2, maxLife: 1.2 });
+  }
+
+  updateParticles(deltaSec) {
+    if (this.damageFlash > 0) this.damageFlash = Math.max(0, this.damageFlash - deltaSec);
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx * deltaSec;
+      p.y += p.vy * deltaSec;
+      p.life -= deltaSec;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const ft = this.floatingTexts[i];
+      ft.y -= 25 * deltaSec;
+      ft.life -= deltaSec;
+      if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+    }
+  }
+
+  renderParticles(ctx) {
+    for (const p of this.particles) {
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    }
+    ctx.globalAlpha = 1.0;
+  }
+
+  renderFloatingTexts(ctx) {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const ft of this.floatingTexts) {
+      ctx.font = `${ft.size}px ${FONT_FLOAT}`;
+      ctx.globalAlpha = Math.min(1, ft.life / (ft.maxLife * 0.4));
+      ctx.fillStyle = ft.color;
+      ctx.fillText(ft.text, ft.x, ft.y);
+      if (ft.icon && FLOAT_ICON[ft.icon]) {
+        const ic = FLOAT_ICON[ft.icon];
+        const tw = ctx.measureText(ft.text).width;
+        ctx.drawImage(IMG.icons, ic.sx, ic.sy, ic.sw, ic.sh, ft.x - tw / 2 - 8 - ic.dw, ft.y - ic.dh / 2 - 1, ic.dw, ic.dh);
+      }
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+// ==========================================
+// 5. UI 렌더링 및 이벤트 초기화
+// ==========================================
+document.addEventListener('DOMContentLoaded', async () => {
+  try { localStorage.removeItem('KTCU_BREAKER_CUSTOM_DECK_V1'); } catch (e) {}
+  const itemManager = new ItemManager();
+  const couponWallet = new CouponWallet();
+  const canvas = $('game-canvas');
+
+  const screenEntry = $('screen-entry');
+  const screenGame = $('screen-game');
+  const hudStage = $('hud-stage');
+  const hudBricks = $('hud-bricks');
+  const hpFill = $('hp-fill');
+  const hpCur = $('hp-cur');
+  const hpRow = hpFill.parentElement;
+  const toast = $('toast');
+  const toastRow = $('toast-row');
+  const dexPop = $('dex-pop');
+  const screenEnd = $('screen-end');
+  const flowConsent = $('flow-consent');
+  const flowDone = $('flow-done');
+  const flowApplied = $('flow-applied');
+  let toastTimeout = null;
+
+  try { new FontFace('__iyagi_probe', "local('DOSIyagiBoldface')").load().catch(() => document.documentElement.classList.add('iyagi-fb')); } catch (e) {}
+  // 이미지·폰트가 준비된 뒤 게임 객체 생성 (캔버스에 바로 그려야 하므로)
+  await Promise.all([
+    loadImages(),
+    document.fonts ? Promise.all([
+      document.fonts.load("18px 'DOSGothic'"),
+      document.fonts.load("18px 'DOSIyagiBoldface'"),
+      document.fonts.load("18px 'DOSMyungjo'"),
+      document.fonts.load("30px 'Departure Mono'")
+    ]).catch(() => {}) : Promise.resolve()
+  ]);
+
+  // ── 도감 카드 ──
+  function iconHtml(c) {
+    const [sheet, w, h, iw, ih, il, it] = c.ic;
+    return `<div class="icol">${sp(SHEETS[sheet], w, h, iw, ih, il, it)}</div>`;
+  }
+  function textColHtml(c, locked) {
+    return `<div class="tcol">${tagHtml(locked ? '미획득' : c.tag, locked ? '#999999' : '#FF0000')}
+      <div class="tbody"><div class="tt">${escapeHtml(c.title)}</div><div class="td">${escapeHtml(c.desc)}</div></div></div>`;
+  }
+  function dexCardHtml(c, locked) {
+    return `<div class="dcard"><div class="px"></div>
+      <div class="drow">${iconHtml(c)}${textColHtml(c, locked)}</div>
+      ${locked ? `<img class="lockov" src="assets/dex-lock-overlay.svg" alt="">${sp('assets/lock.png', 25, 29, 745.38, 313.43, -615.55, -184.81).replace('class="sp"', 'class="sp lockic"')}` : ''}
+    </div>`;
+  }
+
+  function ducksHtml(count) {
+    const full = count >= PRIZE_CONFIG.requiredCoupons;
+    const duckOn = (x) => sp('assets/mascot-sheet.png', 23, 24, 315.46, 100, -8.76, 0, `left:${x}px;top:0`);
+    const duckOff = (x) => sp('assets/duck-dark.png', 25, 24, 288, 100, 0, 0, `left:${x}px;top:0`);
+    if (full) return duckOn(0) + duckOn(25) + duckOn(50);
+    if (count <= 0) return duckOff(0) + duckOff(25) + duckOff(50);
+    if (count === 1) return duckOn(0) + duckOff(23) + duckOff(48);
+    return duckOn(0) + duckOn(25) + duckOff(48);
+  }
+
+  function dexMessageHtml() {
+    const need = PRIZE_CONFIG.requiredCoupons;
+    const n = couponWallet.count;
+    const prize = escapeHtml(PRIZE_CONFIG.prizeName);
+    if (n >= need) {
+      return `<div>아이템 <span class="hl">${need}개</span> 수집 완료!</div><div>본인인증 후 <span class="hl">${prize}</span> 응모가 가능해요</div>`;
+    }
+    return `<div>아이템 <span class="hl">${need}개</span>를 모으면 본인인증 후 <span class="hl">${prize}</span> 응모!</div><div>앞으로 <span class="hl">${need - n}개</span> 남았어요.</div>`;
+  }
+
+  // 아이템 도감 열기 — 게임 중이면 일시정지
+  function openWallet() {
+    if (game.isPlaying) game.isPaused = true;
+    $('dex-ducks').innerHTML = ducksHtml(couponWallet.count);
+    $('dex-lines').innerHTML = dexMessageHtml();
+    const owned = new Set(couponWallet.ids);
+    const list = $('dex-list');
+    list.innerHTML = `<div class="dex-sum"><span>Total ${COUPON_POOL.length}</span><span>획득 <span class="hl">${owned.size}</span> / ${COUPON_POOL.length}</span></div>
+      <div id="dex-cards">${COUPON_POOL.map(c => dexCardHtml(c, !owned.has(c.id))).join('')}</div>`;
+    $('dex-cards').scrollTop = 0;
+    const ready = couponWallet.isPrizeReady;
+    $('dex-prize').disabled = !ready;
+    $('dex-prize-bg').src = ready ? 'assets/btn-yellow.png' : 'assets/btn-gray.png';
+    $('dex-prize-bg').style.cssText = ready ? 'height:100%;top:0;object-fit:cover' : 'height:149.24%;top:-24.62%;object-fit:fill';
+    showEl(dexPop, $('dex-box'));
+  }
+  function closeWallet() {
+    hideEl(dexPop);
+    game.isPaused = false;
+  }
+
+  // ── 본인인증 플로우: 도감 → 약관 동의 → 인증 완료 → 경품 응모 완료 ──
+  const AGREE_TERMS = '약관내용 '.repeat(18).trim();
+  const AGREE_ITEMS = [
+    { text: '(필수) 약관내용 약관내용 약관내용', required: true, open: true },
+    { text: '(필수) 약관내용 약관내용 약관내용 약관<br>약관내용 약관내용', required: true, open: false },
+    { text: '(선택) 약관내용 약관내용 약관내용', required: false, open: false }
+  ];
+  const agreeState = [];
+  function renderAgree() {
+    $('agree-list').innerHTML = AGREE_ITEMS.map((a, i) => `
+      <div class="agree${agreeState[i].open ? ' open' : ''}" data-i="${i}">
+        <div class="arow">
+          <div class="alabel"><img src="assets/${agreeState[i].on ? 'flow-check-on' : 'flow-check-off'}.svg" alt=""><span>${a.text}</span></div>
+          <button class="atoggle" aria-label="약관 펼치기"><img src="assets/flow-arrow-up.svg" alt=""></button>
+        </div>
+        <div class="abox">${AGREE_TERMS}</div>
+      </div>`).join('');
+    // 필수 항목을 모두 체크해야 다음으로 진행
+    $('consent-next').disabled = !AGREE_ITEMS.every((a, i) => !a.required || agreeState[i].on);
+  }
+  function resetConsent() {
+    AGREE_ITEMS.forEach((a, i) => { agreeState[i] = { on: false, open: a.open }; });
+    renderAgree();
+  }
+  $('agree-list').addEventListener('click', (e) => {
+    const item = e.target.closest('.agree');
+    if (!item) return;
+    const i = +item.dataset.i;
+    if (e.target.closest('.atoggle')) agreeState[i].open = !agreeState[i].open;
+    else if (e.target.closest('.alabel')) agreeState[i].on = !agreeState[i].on;
+    else return;
+    renderAgree();
+  });
+
+  // 응모 완료 화면: 처음 응모(already=false) / 이미 응모한 사용자(already=true)에 따라 제목과 이미지가 다름
+  function showApplied(already) {
+    $('applied-title').innerHTML = already ? '이미 경품 응모가<br>완료되었습니다.' : '경품 응모가<br>완료되었습니다.';
+    const duck = $('applied-duck');
+    duck.src = already ? 'assets/flow-duck-already.png' : 'assets/flow-duck.png';
+    duck.style.cssText = already
+      ? 'left:85px;top:334px;width:204px;height:204px;object-fit:cover'
+      : 'left:28px;top:297px;width:320px;height:320px;object-fit:cover';
+    showEl(flowApplied);
+  }
+  function hasApplied() {
+    try { return !!localStorage.getItem(PRIZE_APPLIED_KEY); } catch (e) { return false; }
+  }
+  function openPrize() {
+    if (!couponWallet.isPrizeReady) return;
+    if (game.isPlaying) game.isPaused = true;
+    hideEl(dexPop);
+    // 이미 응모한 브라우저라면 중복 응모 방지 화면으로 바로 이동
+    if (hasApplied()) { showApplied(true); return; }
+    resetConsent();
+    showEl(flowConsent);
+  }
+  function closeFlow() {
+    [flowConsent, flowDone, flowApplied].forEach(el => { if (!el.classList.contains('off')) hideEl(el); });
+    if (game.isPlaying) game.isPaused = false;
+  }
+  $('consent-back').addEventListener('click', () => { hideEl(flowConsent); openWallet(); });
+  $('consent-next').addEventListener('click', () => {
+    // TODO: 실제 본인인증 연동 시 이 지점에서 인증을 진행하고 결과 값을 VERIFY_SAMPLE 대신 사용
+    $('info-card').innerHTML = [['이름', VERIFY_SAMPLE.name], ['전화번호', VERIFY_SAMPLE.phone], ['생년월일', VERIFY_SAMPLE.birth]]
+      .map(([k, v]) => `<div class="r"><span class="k">${k}</span><span>${escapeHtml(v)}</span></div>`).join('');
+    hideEl(flowConsent);
+    showEl(flowDone);
+  });
+  $('done-back').addEventListener('click', () => { hideEl(flowDone); showEl(flowConsent); });
+  $('done-next').addEventListener('click', () => {
+    try { localStorage.setItem(PRIZE_APPLIED_KEY, String(Date.now())); } catch (e) {}
+    hideEl(flowDone);
+    showApplied(false);
+  });
+  $('applied-saving').addEventListener('click', () => { if (FLOW_LINKS.saving) window.open(FLOW_LINKS.saving, '_blank', 'noopener'); });
+  $('applied-benefit').addEventListener('click', () => { if (FLOW_LINKS.benefit) window.open(FLOW_LINKS.benefit, '_blank', 'noopener'); });
+  $('applied-back').addEventListener('click', closeFlow);
+
+  // 도감 등록 알림 카드 (HUD 위에 겹쳐서 벽돌을 가리지 않음)
+  function showItemToast(item, coupon) {
+    // 새 아이템이 도감에 등록됐을 때만 카드 알림 (전 종류를 모은 뒤에는 HP 회복만)
+    if (!coupon) return;
+    toastRow.innerHTML = iconHtml(coupon) + textColHtml(coupon, false);
+    if (couponWallet.count === PRIZE_CONFIG.requiredCoupons) {
+      game.addFloatingText(`아이템 ${PRIZE_CONFIG.requiredCoupons}개 달성! 경품 응모 가능`, game.width / 2, game.height / 2 - 30, '#fedb1f', 14);
+    }
+    toast.classList.remove('off');
+    if (HAS_GSAP) {
+      gsap.killTweensOf(toast);
+      gsap.fromTo(toast, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.25, ease: 'back.out(1.7)' });
+    } else toast.style.opacity = 1;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      if (HAS_GSAP) gsap.to(toast, { opacity: 0, y: -8, duration: 0.2, onComplete: () => toast.classList.add('off') });
+      else { toast.style.opacity = 0; toast.classList.add('off'); }
+    }, 2800);
+  }
+
+  // HP 바: 노란 바를 HP 비율만큼만 보이게 자르고, 나머지는 어둡게
+  const HP_BAR_START = 35, HP_BAR_LEN = 320, HP_W = 355;
+  function setHpBar(hp) {
+    const px = HP_BAR_START + HP_BAR_LEN * (hp / HP_MAX);
+    hpFill.style.clipPath = `inset(0 ${Math.max(0, HP_W - px)}px 0 0)`;
+    hpCur.textContent = hp;
+  }
+
+  function handleStateChange(state) {
+    hudStage.textContent = state.stage;
+    hudBricks.textContent = state.bricksLeft;
+    setHpBar(state.hp);
+    if (state.hpDelta) {
+      if (HAS_GSAP) {
+        gsap.killTweensOf(hpRow);
+        if (state.hpDelta < 0) gsap.fromTo(hpRow, { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1.2, 0.3)' });
+        else gsap.fromTo(hpRow, { scale: 1.06, transformOrigin: '0 50%' }, { scale: 1, duration: 0.35, ease: 'back.out(2)' });
+      }
+      game.lastHpDelta = 0;
+    }
+    if (state.isGameOver) showEnd(state);
+  }
+
+  // 게임 오버 / 올클리어 화면 (아이템 3개 미만·이상 문구 분기)
+  function endMessageHtml() {
+    const need = PRIZE_CONFIG.requiredCoupons;
+    const n = couponWallet.count;
+    const prize = escapeHtml(PRIZE_CONFIG.prizeName);
+    if (n >= need) {
+      return `<div>아이템 <span class="hl">${n}개</span> 수집 완료!</div><div>하단의 아이템 도감 버튼을 눌러</div><div>본인인증 후 <span class="hl">${prize}</span> 응모가 가능해요.</div>`;
+    }
+    return `<div>아이템 <span class="hl">${need}개</span> 모으면</div><div>본인인증 후 ${prize} 응모!</div><div>앞으로 <span class="hl">${need - n}개</span> 남았어요.</div>`;
+  }
+  function showEnd(state) {
+    const title = state.isVictory ? 'ALL<br>CLEAR!' : 'GAME<br>OVER!';
+    $('end-title-b').innerHTML = title;
+    $('end-title-y').innerHTML = title;
+    $('end-stage').textContent = state.stage;
+    $('end-item').textContent = couponWallet.count;
+    $('end-ducks').innerHTML = ducksHtml(couponWallet.count);
+    $('end-lines').innerHTML = endMessageHtml();
+    $('end-restart-label').textContent = state.isVictory ? '한 판 더' : '다시 도전하기';
+    showEl(screenEnd);
+  }
+
+  const game = new BrickBreakerGame(canvas, itemManager, couponWallet, handleStateChange, showItemToast);
+  setHpBar(HP_MAX);
+
+  // ── 진입 화면 ──
+  const tipPopup = $('tip-popup');
+  $('btn-tip').addEventListener('click', () => showEl(tipPopup));
+  $('tip-close').addEventListener('click', () => hideEl(tipPopup));
+
+  function startGame() {
+    couponWallet.reset(); // START를 누를 때마다 도감은 전부 미획득에서 시작
+    audio.init();
+    hideEl(tipPopup);
+    screenGame.classList.remove('off');
+    game.resizeCanvas();
+    if (HAS_GSAP) {
+      gsap.to(screenEntry, { opacity: 0, duration: 0.25, onComplete: () => screenEntry.classList.add('off') });
+      gsap.fromTo(screenGame, { opacity: 0 }, { opacity: 1, duration: 0.3, delay: 0.1 });
+    } else {
+      screenEntry.classList.add('off'); screenGame.style.opacity = 1;
+    }
+    game.start();
+    audio.startBgm();
+    $('bgm-icon').style.opacity = 1;
+  }
+  $('btn-start').addEventListener('click', startGame);
+
+  // ── 게임 화면 버튼 ──
+  $('dex-btn').addEventListener('click', openWallet);
+  $('dex-close').addEventListener('click', closeWallet);
+  $('dex-resume').addEventListener('click', closeWallet);
+  $('dex-prize').addEventListener('click', openPrize);
+  const restartHandler = (e) => {
+    if (e) e.preventDefault();
+    audio.init();
+    hideEl(screenEnd);
+    game.start();
+  };
+  $('end-restart').addEventListener('click', restartHandler);
+  $('end-dex').addEventListener('click', openWallet);
+
+  // 닫기: 창 닫기 시도 → 막히면 이전 페이지 → 그래도 안 되면 fallbackUrl
+  $('btn-close-game').addEventListener('click', () => {
+    audio.stopBgm();
+    game.isPaused = true;
+    window.close();
+    // 스크립트로 연 창이 아니면 브라우저가 window.close()를 무시하므로 잠시 후 대체 동작
+    setTimeout(() => {
+      if (window.closed) return;
+      if (CLOSE_CONFIG.fallbackUrl) location.href = CLOSE_CONFIG.fallbackUrl;
+      else if (history.length > 1) history.back();
+    }, 200);
+  });
+
+  function toggleBgm() {
+    const isPlaying = audio.toggleBgm();
+    $('bgm-icon').style.opacity = isPlaying ? 1 : 0.4;
+  }
+  $('btn-bgm').addEventListener('click', toggleBgm);
+
+  // 화면 좌표 → 디자인 좌표 (스테이지 배율 보정)
+  const toDesignX = (clientX) => (clientX - canvas.getBoundingClientRect().left) / window.APP_SCALE;
+
+  // --- PC: 최초 클릭 후 마우스 좌우 이동으로 패들 추적 ---
+  let mouseControlOn = false;
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    audio.init();
+    if (!mouseControlOn) {
+      // 첫 클릭: 마우스 조작을 켜고 바로 발사까지
+      mouseControlOn = true;
+      game.setPaddleX(toDesignX(e.clientX));
+    }
+    game.launchBall();
+  });
+  // 커서가 게임 화면 밖으로 나가도 계속 따라오도록 window에서 추적
+  window.addEventListener('mousemove', (e) => {
+    if (!mouseControlOn || game.isPaused) return;
+    game.setPaddleX(toDesignX(e.clientX));
+  });
+
+  // --- 모바일: 스와이프 방향·이동량만큼 패들 이동, 짧은 탭은 발사 ---
+  const SWIPE_SENSITIVITY = 1.3;
+  const TAP_MAX_MOVE = 8;
+  const TAP_MAX_MS = 250;
+  let touchLastX = 0, touchStartX = 0, touchStartTime = 0;
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    audio.init();
+    const t = e.touches[0];
+    touchLastX = touchStartX = t.clientX;
+    touchStartTime = performance.now();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const x = e.touches[0].clientX;
+    game.movePaddleBy(((x - touchLastX) / window.APP_SCALE) * SWIPE_SENSITIVITY);
+    touchLastX = x;
+  }, { passive: false });
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    const isTap = Math.abs(t.clientX - touchStartX) < TAP_MAX_MOVE && performance.now() - touchStartTime < TAP_MAX_MS;
+    if (isTap) game.launchBall();
+  }, { passive: false });
+
+  // 키보드 컨트롤러
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+    audio.init();
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.movePaddleLeft(true);
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.movePaddleRight(true);
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') game.launchBall();
+    if (e.key === 'm' || e.key === 'M') toggleBgm();
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.movePaddleLeft(false);
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.movePaddleRight(false);
+  });
+
+  window.addEventListener('resize', () => { fitStage(); game.resizeCanvas(); });
+
+  // 진입 화면 등장
+  if (HAS_GSAP) gsap.from(screenEntry, { opacity: 0, duration: 0.4 });
+});
+</script>
+</body>
+</html>

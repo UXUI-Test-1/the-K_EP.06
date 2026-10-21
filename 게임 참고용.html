@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0d18">
+  <title>더케이 오락실 레트로 벽돌깨기</title>
+  <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+  --bg-primary: #0a0d18;
+  --bg-arcade: #141b2d;
+  --bg-panel: #1b243b;
+  --bg-card: #222d4a;
+  
+  --thek-blue: #1e88e5;
+  --thek-dark-blue: #0d47a1;
+  --thek-sky: #00e5ff;
+  --thek-gold: #ffd700;
+  --thek-green: #00e676;
+  --thek-red: #ff1744;
+  --thek-purple: #d500f9;
+  
+  --text-main: #ffffff;
+  --text-muted: #8e9bb4;
+  --pixel-border: #3b4d75;
+  
+  --font-pixel: 'Press Start 2P', 'VT323', monospace;
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mobile-app-wrapper {
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  max-height: 940px;
+  background: var(--bg-arcade);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.15), 0 0 80px rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--pixel-border);
+  overflow: hidden;
+}
+
+.scanline-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 90;
+  opacity: 0.6;
+}
+
+.arcade-header {
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #1f2a45 0%, #141b2d 100%);
+  border-bottom: 2px solid var(--pixel-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--thek-sky);
+  letter-spacing: 0.5px;
+  /* 픽셀 글꼴의 넓은 띄어쓰기 폭 축소 */
+  word-spacing: -0.45em;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+}
+
+.brand-sub {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--thek-gold);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-switch-tab {
+  display: flex;
+  background: #0f1524;
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--pixel-border);
+}
+
+.game-switch-link {
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.game-switch-link.active {
+  background: var(--thek-dark-blue);
+  color: var(--thek-sky);
+  border: 1px solid var(--thek-sky);
+}
+
+.btn-header {
+  background: var(--bg-panel);
+  border: 2px solid var(--pixel-border);
+  color: var(--text-main);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.1s;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.btn-header.btn-close-game {
+  min-width: 32px;
+  justify-content: center;
+  font-weight: 800;
+  color: #ff8a80;
+  border-color: #6b2a3a;
+}
+
+.btn-header:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #000;
+}
+
+.game-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px 4px 10px;
+  gap: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hud-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-panel);
+  border: 2px solid var(--pixel-border);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hud-label {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.hud-value {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  color: var(--thek-gold);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.item-notification-toast {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: rgba(14, 21, 38, 0.95);
+  border: 2px solid var(--thek-gold);
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 86%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.3);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.item-notification-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 8, 16, 0.88);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  width: 100%;
+  max-height: 90%;
+  background: var(--bg-panel);
+  border: 3px solid var(--pixel-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 229, 255, 0.2);
+}
+
+.modal-header {
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #24304f 0%, #1b243b 100%);
+  border-bottom: 2px solid var(--pixel-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  color: var(--thek-gold);
+}
+
+/* 한글 제목: 픽셀 글꼴의 넓은 띄어쓰기 폭 축소 */
+.modal-title.title-tight {
+  word-spacing: -0.45em;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-footer {
+  padding: 10px 16px;
+  background: var(--bg-arcade);
+  border-top: 2px solid var(--pixel-border);
+  display: flex;
+  gap: 8px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--thek-blue), var(--thek-sky));
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--pixel-border);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.start-screen-content, .gameover-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.duckhey-pixel-art {
+  font-size: 44px;
+  filter: drop-shadow(0 0 10px var(--thek-gold));
+  animation: bounce-mascot 1s infinite alternate ease-in-out;
+}
+
+.game-main-title {
+  font-family: var(--font-pixel);
+  font-size: 16px;
+  color: var(--thek-sky);
+  line-height: 1.4;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+}
+
+.game-sub-badge {
+  display: inline-block;
+  background: var(--thek-dark-blue);
+  color: var(--thek-gold);
+  border: 1px solid var(--thek-gold);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.game-intro-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.gameover-score-badge {
+  background: #0f1524;
+  border: 2px solid var(--thek-gold);
+  padding: 10px 20px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.score-num {
+  font-family: var(--font-pixel);
+  font-size: 22px;
+  color: var(--thek-gold);
+  margin-top: 4px;
+}
+
+.welfare-report-card {
+  background: #172138;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #cfd8dc;
+}
+
+.welfare-report-card b {
+  color: var(--thek-sky);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes bounce-mascot {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+    /* 벽돌깨기 전용 보완 스타일 */
+    .breaker-board-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      position: relative;
+    }
+
+    .breaker-canvas-wrapper {
+      width: 100%;
+      height: 100%;
+      background: #080c16;
+      border: 3px solid var(--pixel-border);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 229, 255, 0.15);
+    }
+
+    #breaker-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    /* 모드 전환 탭 바 */
+    .game-switch-tab {
+      display: flex;
+      background: #0f1524;
+      border-radius: 4px;
+      padding: 2px;
+      gap: 2px;
+      border: 1px solid var(--pixel-border);
+    }
+
+    .game-switch-link {
+      padding: 3px 8px;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 3px;
+      transition: all 0.15s;
+    }
+
+    .game-switch-link.active {
+      background: var(--thek-dark-blue);
+      color: var(--thek-sky);
+      border: 1px solid var(--thek-sky);
+    }
+
+    /* 하단 생명력(HP) 바 */
+    .hp-footer {
+      background: linear-gradient(180deg, #141b2d 0%, #0d1220 100%);
+      border-top: 2px solid var(--pixel-border);
+      padding: 8px 12px 14px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .hp-box {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hp-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--text-muted);
+    }
+
+    .hp-label-row b {
+      color: #fff;
+      font-weight: normal;
+    }
+
+    .hp-track {
+      position: relative;
+      height: 18px;
+      background: #0a0f1d;
+      border: 2px solid #4a5c88;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .hp-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 100%;
+      background: linear-gradient(180deg, #69f0ae 0%, #00c853 100%);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
+      transition: width 0.25s ease-out, background 0.25s;
+    }
+
+    .hp-fill.mid {
+      background: linear-gradient(180deg, #ffe57f 0%, #ffab00 100%);
+      box-shadow: 0 0 10px rgba(255, 171, 0, 0.6);
+    }
+
+    .hp-fill.low {
+      background: linear-gradient(180deg, #ff8a80 0%, #ff1744 100%);
+      box-shadow: 0 0 10px rgba(255, 23, 68, 0.7);
+      animation: hp-blink 0.6s infinite alternate;
+    }
+
+    /* 도트 느낌의 칸 구분선 */
+    .hp-track::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 9%, rgba(10, 15, 29, 0.9) 9% 10%);
+      pointer-events: none;
+    }
+
+    /* 줄어든 만큼 잠시 남았다가 사라지는 잔상 바 */
+    .hp-ghost {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 100%;
+      background: #fff;
+      transition: width 0.5s ease-in 0.45s;
+    }
+
+    .hp-ghost.hit-now { background: #ff5252; }
+
+    .hp-track.hit {
+      animation: hp-shake 0.45s;
+      border-color: var(--thek-red);
+      box-shadow: 0 0 16px rgba(255, 23, 68, 0.9);
+    }
+
+    .hp-footer.damaged { animation: footer-flash 0.5s; }
+
+    /* HP 바 위로 떠오르는 -N / +N */
+    .hp-pop {
+      position: absolute;
+      left: 48px;
+      top: -8px;
+      font-family: var(--font-pixel);
+      font-size: 16px;
+      pointer-events: none;
+      opacity: 0;
+      text-shadow: 0 0 8px currentColor, 2px 2px 0 #000;
+    }
+
+    .hp-pop.damage { color: #ff1744; animation: hp-pop-up 0.9s ease-out; }
+    .hp-pop.heal { color: #69f0ae; animation: hp-pop-up 0.9s ease-out; }
+    .hp-track.heal { border-color: var(--thek-green); box-shadow: 0 0 12px rgba(0, 230, 118, 0.7); }
+
+    .btn-coupon-wallet {
+      min-width: 88px;
+      height: 38px;
+      padding: 0 8px;
+      background: linear-gradient(135deg, #ffd700, #ff9100);
+      border: 2px solid #ffe600;
+      border-radius: 8px;
+      color: #111;
+      font-weight: 800;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.25;
+      box-shadow: 0 3px 0 #9c5500, 0 0 10px rgba(255, 215, 0, 0.35);
+      cursor: pointer;
+    }
+
+    .btn-coupon-wallet:active { transform: translateY(2px); box-shadow: 0 1px 0 #9c5500; }
+    .btn-coupon-wallet .coupon-count { font-family: var(--font-pixel); font-size: 10px; }
+    .btn-coupon-wallet.ready { animation: pulse-dot 1s infinite ease-in-out; }
+
+    /* 아이템 카드 (토스트·도감 공용, 쿠폰 모양) */
+    .coupon-card {
+      display: flex;
+      background: #fffdf5;
+      color: #1b243b;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .coupon-stub {
+      width: 56px;
+      background: linear-gradient(180deg, var(--thek-blue), var(--thek-dark-blue));
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      border-right: 3px dashed #fffdf5;
+      font-size: 24px;
+    }
+
+    .coupon-stub small {
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      color: var(--thek-gold);
+    }
+
+    .coupon-body {
+      flex: 1;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .coupon-tag {
+      align-self: flex-start;
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      background: var(--thek-red);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .coupon-title { font-size: 13px; font-weight: 800; }
+    .coupon-desc { font-size: 11px; color: #455a64; line-height: 1.35; }
+
+    /* 도감: 획득 카드는 금빛 테두리, 미획득 카드는 흑백·반투명 */
+    .coupon-card.owned {
+      box-shadow: 0 0 0 2px var(--thek-gold), 0 0 12px rgba(255, 215, 0, 0.45);
+    }
+
+    .coupon-card.locked {
+      background: #1e2740;
+      color: #6b7896;
+      box-shadow: none;
+      outline: 1px dashed #3b4d75;
+    }
+
+    .coupon-card.locked .coupon-stub {
+      background: #151c30;
+      border-right-color: #1e2740;
+      filter: grayscale(1);
+      opacity: 0.45;
+    }
+
+    .coupon-card.locked .coupon-tag { background: #3b4d75; color: #aab4cc; }
+    .coupon-card.locked .coupon-desc { color: #55617d; }
+
+    /* 도감 팝업: 상단(배너·요약)은 고정, 목록만 스크롤 */
+    .modal-body.dex-body {
+      overflow: hidden;
+      min-height: 0;
+      flex: 1;
+      gap: 10px;
+    }
+
+    .dex-fixed {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dex-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 2px 2px 4px;
+    }
+
+    /* 카드가 눌려 줄어들지 않고 목록이 스크롤되도록 */
+    .dex-list > .coupon-card { flex-shrink: 0; }
+
+    .dex-summary {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 0 2px;
+    }
+
+    .dex-summary b { color: var(--thek-gold); }
+
+    .coupon-card.empty {
+      background: transparent;
+      border: 2px dashed var(--pixel-border);
+      box-shadow: none;
+      color: var(--text-muted);
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .item-notification-toast.coupon-mode {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      display: block;
+    }
+
+    .coupon-progress {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .coupon-progress span {
+      width: 22px;
+      height: 8px;
+      border-radius: 2px;
+      background: #2e3d63;
+    }
+
+    .coupon-progress span.on {
+      background: var(--thek-gold);
+      box-shadow: 0 0 6px rgba(255, 215, 0, 0.8);
+    }
+
+    .prize-banner {
+      width: 100%;
+      background: linear-gradient(135deg, #0d47a1, #1e88e5);
+      border: 2px solid var(--thek-gold);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #fff;
+    }
+
+    .prize-banner b { color: var(--thek-gold); }
+
+    .btn-primary:disabled {
+      background: #2e3d63;
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    @keyframes hp-blink {
+      from { opacity: 1; }
+      to { opacity: 0.55; }
+    }
+
+    @keyframes hp-shake {
+      0%, 100% { transform: translateX(0); }
+      15%, 55% { transform: translateX(-7px); }
+      35%, 75% { transform: translateX(7px); }
+    }
+
+    @keyframes footer-flash {
+      0%, 100% { background: linear-gradient(180deg, #141b2d 0%, #0d1220 100%); }
+      30% { background: linear-gradient(180deg, #5a0f1f 0%, #2a0710 100%); }
+    }
+
+    @keyframes hp-pop-up {
+      0% { opacity: 0; transform: translateY(8px) scale(0.6); }
+      20% { opacity: 1; transform: translateY(-6px) scale(1.25); }
+      70% { opacity: 1; transform: translateY(-14px) scale(1); }
+      100% { opacity: 0; transform: translateY(-22px) scale(1); }
+    }
+
+    /* 덕헤이 캐릭터 (덕헤이.png) — 이미지 1회 임베드 후 공용 사용 */
+    .mascot-img {
+      background-image: url('data:image/jpeg;base64,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');
+      background-repeat: no-repeat;
+    }
+
+    /* 헤더: 얼굴만 원형으로 잘라 표시 */
+    .mascot-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--thek-sky);
+      background-color: #2a1446;
+      background-size: 270% auto;
+      background-position: 21% 63%;
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.7), inset 0 0 6px rgba(0, 0, 0, 0.4);
+      flex-shrink: 0;
+    }
+
+    /* 시작 화면: 캐릭터 전체 */
+    .mascot-hero {
+      width: 210px;
+      height: 150px;
+      background-size: cover;
+      background-position: center 78%;
+      border: 2px solid var(--thek-purple);
+      border-radius: 12px;
+      box-shadow: 0 0 14px rgba(213, 0, 249, 0.6), 0 0 28px rgba(0, 229, 255, 0.25);
+      animation: bounce-mascot 1s infinite alternate ease-in-out;
+    }
+
+    /* 게임 오버: 도달 스테이지 / 획득 아이템 */
+    .result-stats {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .result-stats .gameover-score-badge {
+      flex: 1;
+      padding: 10px 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 메인 모바일 앱 프레임 -->
+  <div class="mobile-app-wrapper">
+    <!-- CRT 스캔라인 오버레이 -->
+    <div class="scanline-overlay"></div>
+
+    <!-- 1. 아케이드 상단 헤더 -->
+    <header class="arcade-header">
+      <div class="brand-badge">
+        <span class="mascot-img mascot-avatar" role="img" aria-label="덕헤이 캐릭터"></span>
+        <div class="brand-titles">
+          <span class="brand-title">더케이 오락실</span>
+          <span class="brand-sub">레트로 벽돌깨기</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="btn-sound-bgm" class="btn-header" title="BGM 온/오프">
+          <span id="bgm-icon">🎵</span>
+        </button>
+        <button id="btn-close-game" class="btn-header btn-close-game" title="게임 닫기" aria-label="게임 닫기">✕</button>
+      </div>
+    </header>
+
+    <!-- 2. 게임 뷰포트 영역 -->
+    <main class="game-viewport">
+      <!-- 상단 HUD 스테이지/남은 벽돌 + 아이템 도감 -->
+      <div class="hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">STAGE</span>
+          <span id="hud-stage" class="hud-value">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">BRICKS</span>
+          <span id="hud-bricks" class="hud-value" style="color: var(--thek-gold);">0</span>
+        </div>
+        <button id="btn-coupon-wallet" class="btn-coupon-wallet" aria-label="아이템 도감 열기">
+          <span>📖 아이템 도감</span>
+          <span id="coupon-count" class="coupon-count" hidden>경품 응모 가능</span>
+        </button>
+      </div>
+
+      <!-- 메인 벽돌깨기 캔버스 영역 -->
+      <div class="breaker-board-container">
+        <div class="breaker-canvas-wrapper">
+          <canvas id="breaker-canvas"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <!-- 3. 하단 생명력(HP) 바 -->
+    <footer class="hp-footer">
+      <div class="hp-box">
+        <div class="hp-label-row">
+          <span>❤️ HP</span>
+          <b id="hp-text">100 / 100</b>
+        </div>
+        <div id="hp-track" class="hp-track" role="progressbar" aria-label="생명력" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+          <div id="hp-ghost" class="hp-ghost"></div>
+          <div id="hp-fill" class="hp-fill"></div>
+        </div>
+        <span id="hp-pop" class="hp-pop"></span>
+      </div>
+    </footer>
+
+    <!-- 4. 도감 등록 알림 (아이템 카드) -->
+    <div id="item-toast" class="item-notification-toast coupon-mode"></div>
+
+    <!-- 7. 모달: 게임 오버 / 클리어 & 자산 리포트 -->
+    <div id="modal-gameover" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span id="gameover-title" class="modal-title">GAME OVER</span>
+        </div>
+        <div class="modal-body gameover-content">
+          <div class="result-stats">
+            <div class="gameover-score-badge">
+              <div style="font-size: 10px; color: var(--text-muted);">도달 스테이지</div>
+              <div id="final-stage" class="score-num">1</div>
+            </div>
+            <div class="gameover-score-badge">
+              <div style="font-size: 10px; color: var(--text-muted);">획득 아이템</div>
+              <div id="final-coupons" class="score-num">0</div>
+            </div>
+          </div>
+
+          <div id="gameover-prize" class="prize-banner"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-gameover-wallet" class="btn-secondary">📖 아이템 도감</button>
+          <button id="btn-restart" class="btn-primary">🔄 다시 도전하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. 모달: 아이템 도감 -->
+    <div id="modal-wallet" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title title-tight">📖 나의 아이템 도감</span>
+          <button id="btn-close-wallet" class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body dex-body">
+          <!-- 상단 고정: 경품(본인인증) 안내 + 획득 아이템 수 -->
+          <div class="dex-fixed">
+            <div id="wallet-prize" class="prize-banner"></div>
+            <div id="wallet-summary" class="dex-summary"></div>
+          </div>
+          <!-- 아이템 목록만 스크롤 -->
+          <div id="wallet-list" class="dex-list">
+            <!-- JS로 아이템 카드 렌더링 -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-wallet-resume" class="btn-secondary">▶ 계속하기</button>
+          <button id="btn-prize-apply" class="btn-primary">🎁 본인인증 후 경품 받기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. 모달: 경품 응모 (본인인증 안내) -->
+    <div id="modal-prize" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title">🎁 경품 응모</span>
+          <button id="btn-close-prize" class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body start-screen-content">
+          <div class="duckhey-pixel-art">🎁</div>
+          <h3 style="font-size: 14px; font-weight: 800; color: #fff;">아이템 <span id="prize-count">3</span>개 수집 완료!</h3>
+          <p id="prize-message" class="game-intro-text"></p>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-prize-cancel" class="btn-secondary">나중에</button>
+          <button id="btn-prize-auth" class="btn-primary">🔐 본인인증 하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 벽돌깨기 단독 통합 스크립트 -->
+  <script>
+    // ==========================================
+    // 1. 8비트 레트로 신시사이저 오디오 엔진
+    // ==========================================
+    class RetroAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.isBgmPlaying = false;
+        this.bgmTimer = null;
+        this.currentNoteIndex = 0;
+        this.volume = 0.25;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+
+      playTone(freq, type = 'square', duration = 0.08, gainVal = 0.1, pitchBend = 0) {
+        if (this.isMuted || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          if (pitchBend !== 0) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(10, freq + pitchBend), this.ctx.currentTime + duration);
+          }
+          gain.gain.setValueAtTime(gainVal * this.volume, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      playPaddleHit() { this.init(); this.playTone(320, 'triangle', 0.06, 0.12, 50); }
+      playBrickHit() { this.init(); this.playTone(580, 'square', 0.05, 0.09, 100); }
+      playCatchItem() {
+        this.init();
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.12, 0.15, 30), i * 50);
+        });
+      }
+      playBadItem() {
+        this.init();
+        this.playTone(300, 'sawtooth', 0.12, 0.15, -120);
+        setTimeout(() => this.playTone(220, 'sawtooth', 0.15, 0.15, -80), 90);
+      }
+      playLoseLife() {
+        this.init();
+        [350, 300, 240, 180].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'sawtooth', 0.15, 0.14, -50), i * 90);
+        });
+      }
+      playVictory() {
+        this.init();
+        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'square', 0.2, 0.18), i * 80);
+        });
+      }
+
+      toggleBgm() {
+        if (this.isBgmPlaying) {
+          this.stopBgm();
+          return false;
+        } else {
+          this.startBgm();
+          return true;
+        }
+      }
+
+      startBgm() {
+        if (this.isBgmPlaying || this.isMuted) return;
+        this.init();
+        this.isBgmPlaying = true;
+        this.currentNoteIndex = 0;
+
+        // 경쾌한 아케이드 칩튠 아르페지오 멜로디
+        const notes = [
+          523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.00, 698.46,
+          659.25, 783.99, 1046.5, 783.99, 587.33, 493.88, 587.33, 659.25
+        ];
+
+        const playNext = () => {
+          if (!this.isBgmPlaying || this.isMuted) return;
+          const f = notes[this.currentNoteIndex];
+          this.playTone(f, 'square', 0.12, 0.04);
+          this.playTone(f / 2, 'triangle', 0.1, 0.03);
+          this.currentNoteIndex = (this.currentNoteIndex + 1) % notes.length;
+          this.bgmTimer = setTimeout(playNext, 160);
+        };
+        playNext();
+      }
+
+      stopBgm() {
+        this.isBgmPlaying = false;
+        if (this.bgmTimer) {
+          clearTimeout(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      }
+    }
+
+    const audio = new RetroAudioEngine();
+
+    // ==========================================
+    // 2. 교직원공제회 혜택 & 리스크 데이터 정의
+    // ==========================================
+    // 선물은 도감 등록 + HP 회복만 있는 단일 아이템
+    const GIFT_ITEM = { id: 'gift', name: '선물', icon: '🎁', type: 'GIFT' };
+
+    // 폭탄은 HP 감소만 있는 단일 아이템
+    const BOMB_ITEM = { id: 'bomb', name: '폭탄', icon: '💣', type: 'BOMB' };
+
+    // 벽돌 파괴 시 떨어지는 선물/폭탄 롤
+    class ItemManager {
+      rollDropItem() {
+        if (Math.random() > DROP_CHANCE) return null;
+        // 선물 50%, 폭탄 50%
+        return Math.random() < GIFT_RATIO ? { ...GIFT_ITEM, isGood: true } : { ...BOMB_ITEM, isGood: false };
+      }
+    }
+
+    // 아이템 드롭 제어: 확률 + 화면당 1개 제한 + 쿨다운
+    // 스테이지당 선물(아이템) 최소 노출 보장
+    const GIFT_RATIO = 0.5;          // 떨어지는 것 중 선물 비율 (나머지는 폭탄) — 선물:폭탄 = 5:5
+    // 스테이지당 선물·폭탄 개수 범위 (최소는 보장, 최대를 넘으면 그 종류는 더 안 떨어짐)
+    const MIN_GIFTS_PER_STAGE = 2;
+    const MAX_GIFTS_PER_STAGE = 3;
+    const MIN_BOMBS_PER_STAGE = 2;
+    const MAX_BOMBS_PER_STAGE = 3;
+    const GUARANTEE_BRICKS_PER_ITEM = 7; // 부족한 선물·폭탄 1개당, 남은 벽돌이 이 수 이하가 되면 강제로 떨어뜨림
+    const START_HINT_TEXT = '화면을 클릭하면 게임 시작!';  // 공 발사 전 화면 가운데 안내
+    const MAX_STAGE = 3;             // 마지막 스테이지 (3단계를 깨면 ALL CLEAR)
+    const DROP_CHANCE = 0.18;        // 벽돌 1개 파괴 시 드롭 확률
+    const DROP_COOLDOWN_SEC = 3.0;   // 직전 아이템이 사라진 뒤 다음 드롭까지 대기 시간
+    const ITEM_SIZE = 40;            // 떨어지는 선물/폭탄 크기 (기존 24)
+
+    // 생명력(HP) 설정 — 기존 목숨 3개 대신 HP 바 사용
+    const HP_MAX = 100;
+    const HP_GIFT_HEAL = 30;         // 🎁 선물 획득 시 회복
+    const HP_BOMB_DAMAGE = 25;       // 💣 폭탄 획득 시 감소
+    const HP_BALL_LOST_DAMAGE = 30;  // 공을 놓쳤을 때 감소 (회복 없이 4번 놓치면 게임 오버)
+    const DAMAGE_FLASH_SEC = 0.5;    // HP 감소 시 화면 흔들림·붉은 번쩍임 지속 시간
+
+    // 선물을 받으면 도감에 등록되는 혜택 아이템 목록 (쿠폰 모양 카드로 표시)
+    // 종류·이름·설명은 사용자 제공 아이템 리스트(2026-10-07, 10종) 기준
+    const COUPON_POOL = [
+      { id: 'cp_saving',   icon: '💰', tag: '저축 상품',   title: '장기저축급여',       desc: '급여율 5.0%, 연복리로 목돈 불리기' },
+      { id: 'cp_split',    icon: '📆', tag: '저축 상품',   title: '분할급여금',         desc: '모은 만큼 퇴직 후 월급처럼 받기' },
+      { id: 'cp_increase', icon: '📈', tag: '저축 상품',   title: '증좌',               desc: '여윳돈 생길 때마다 증좌로 미래 채우기' },
+      { id: 'cp_movie',    icon: '🎬', tag: '문화 혜택',   title: '영화표 할인',        desc: '보고 싶은 영화 365일 할인받고 보기' },
+      { id: 'cp_travel',   icon: '🧳', tag: '여행 혜택',   title: '숙박 및 교통 할인',  desc: '숙박·교통 할인으로 여행 경비 줄이기' },
+      { id: 'cp_golf',     icon: '⛳', tag: '레저 혜택',   title: '골프장 회원가 이용', desc: '골프장 회원가로 취미 생활 즐기기' },
+      { id: 'cp_wedding',  icon: '💍', tag: '축하금 제공', title: '결혼축하금',         desc: '새 출발 축하금 받기' },
+      { id: 'cp_mind',     icon: '🧘', tag: '건강 지원',   title: 'The-K 마음쉼',       desc: '마음이 복잡할 때 1:1 상담 받기' },
+      { id: 'cp_checkup',  icon: '🩺', tag: '건강 지원',   title: '건강검진',           desc: '제휴 검진기관에서 할인받고 건강 챙기기' },
+      { id: 'cp_consult',  icon: '⚖️', tag: '생활 지원',   title: '무료 전문 상담',     desc: '법률·노무·세무 상담 무료로 받기' }
+    ];
+
+    // 경품 응모 설정
+    // 닫기 버튼 설정 — 브라우저가 창 닫기를 막을 때 이동할 주소 (비어 있으면 이전 페이지로)
+    const CLOSE_CONFIG = {
+      fallbackUrl: ''
+    };
+
+    const PRIZE_CONFIG = {
+      requiredCoupons: 3,
+      prizeName: '경품',            // 예: '커피 쿠폰' — 확정 시 교체
+      authUrl: ''                   // 본인인증 페이지 URL — 비어 있으면 '연동 준비 중' 안내 표시
+    };
+
+    // 아이템 도감 — 여러 판에 걸쳐 누적 (브라우저 저장소)
+    class CouponWallet {
+      constructor() {
+        this.ids = [];
+        try {
+          const saved = JSON.parse(localStorage.getItem('KTCU_BREAKER_COUPONS_V1') || '[]');
+          if (Array.isArray(saved)) this.ids = saved.filter(id => COUPON_POOL.some(c => c.id === id));
+        } catch (e) {}
+      }
+
+      save() {
+        try { localStorage.setItem('KTCU_BREAKER_COUPONS_V1', JSON.stringify(this.ids)); } catch (e) {}
+      }
+
+      get count() { return this.ids.length; }
+      get isPrizeReady() { return this.count >= PRIZE_CONFIG.requiredCoupons; }
+
+      // 아직 없는 아이템을 우선 지급, 모두 모았으면 null
+      grant() {
+        const remaining = COUPON_POOL.filter(c => !this.ids.includes(c.id));
+        if (remaining.length === 0) return null;
+        const coupon = remaining[Math.floor(Math.random() * remaining.length)];
+        this.ids.push(coupon.id);
+        this.save();
+        return coupon;
+      }
+    }
+
+    // ==========================================
+    // 3. 도트 벽돌깨기 핵심 게임 엔진
+    // ==========================================
+    class BrickBreakerGame {
+      constructor(canvas, itemManager, couponWallet, onStateChange, onNotifyItem) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.itemManager = itemManager;
+        this.couponWallet = couponWallet;
+        this.onStateChange = onStateChange;
+        this.onNotifyItem = onNotifyItem;
+
+        this.width = 360;
+        this.height = 500;
+
+        // 게임 상태
+        this.stage = 1;
+        this.hp = HP_MAX;
+        this.lastHpDelta = 0;
+        this.damageFlash = 0;
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.isGameOver = false;
+        this.isVictory = false;
+
+        // 패들 상태
+        this.paddle = {
+          x: 140,
+          y: 460,
+          width: 80,
+          baseWidth: 80,
+          height: 14,
+          speed: 400,
+          moveDir: 0
+        };
+
+        // 공들 목록 (멀티볼 지원)
+        this.balls = [];
+        this.ballAttached = true; // 시작 시 패들에 붙어있음
+
+        // 벽돌 목록
+        this.bricks = [];
+
+        // 떨어지는 선물 아이템들 (한 번에 최대 1개)
+        this.fallingItems = [];
+        this.dropCooldown = 0;
+        this.isStageClearing = false;
+
+        // 파티클 & 플로팅 텍스트
+        this.particles = [];
+        this.floatingTexts = [];
+
+        this.lastTime = 0;
+        this.animationFrameId = null;
+
+        this.resizeCanvas();
+      }
+
+      resizeCanvas() {
+        const parent = this.canvas.parentElement;
+        if (!parent) return;
+        const w = parent.clientWidth;
+        const h = parent.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+
+        this.canvas.width = w * dpr;
+        this.canvas.height = h * dpr;
+        this.ctx.scale(dpr, dpr);
+
+        this.width = w;
+        this.height = h;
+        this.paddle.y = this.height - 35;
+      }
+
+      start() {
+        this.stage = 1;
+        this.hp = HP_MAX;
+        this.lastHpDelta = 0;
+        this.damageFlash = 0;
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.isGameOver = false;
+        this.isVictory = false;
+        this.fallingItems = [];
+        this.dropCooldown = 0;
+        this.isStageClearing = false;
+
+        this.initStage(this.stage);
+        this.resetBallAndPaddle();
+
+        this.lastTime = performance.now();
+        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+        this.loop(this.lastTime);
+        this.triggerStateUpdate();
+      }
+
+      // 스테이지별 차이는 벽돌 개수뿐: 1단계 4줄(28개)부터 1줄(7개)씩 늘어 3단계 6줄(42개), 모든 벽돌 1번에 깨짐
+      initStage(stageNum) {
+        this.bricks = [];
+        this.stageGiftDrops = 0;
+        this.stageBombDrops = 0;
+        const rows = 3 + stageNum;
+        const cols = 7;
+        const brickW = Math.floor((this.width - 24) / cols);
+        const brickH = 18;
+        const offsetX = Math.floor((this.width - (brickW * cols)) / 2);
+        const offsetY = 40;
+
+        const colors = ['#00E5FF', '#2979FF', '#00E676', '#FFD600', '#FF9100', '#FF1744', '#D500F9'];
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            this.bricks.push({
+              x: offsetX + c * brickW + 2,
+              y: offsetY + r * brickH + 2,
+              width: brickW - 4,
+              height: brickH - 4,
+              hp: 1,
+              maxHp: 1,
+              color: colors[r % colors.length]
+            });
+          }
+        }
+      }
+
+      resetBallAndPaddle() {
+        this.paddle.width = this.paddle.baseWidth;
+        this.paddle.x = (this.width - this.paddle.width) / 2;
+        this.ballAttached = true;
+
+        this.balls = [{
+          x: this.paddle.x + this.paddle.width / 2,
+          y: this.paddle.y - 7,
+          radius: 6,
+          vx: 180,
+          vy: -260,
+          speed: 320
+        }];
+
+      }
+
+      launchBall() {
+        if (!this.isPlaying || this.isGameOver) return;
+        if (this.ballAttached) {
+          this.ballAttached = false;
+          // 약간의 랜덤 각도로 발사
+          const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+          const speed = 320;
+          this.balls[0].vx = Math.cos(angle) * speed;
+          this.balls[0].vy = Math.sin(angle) * speed;
+          audio.playPaddleHit();
+        }
+      }
+
+      movePaddleLeft(isDown) {
+        this.paddle.moveDir = isDown ? -1 : 0;
+      }
+
+      movePaddleRight(isDown) {
+        this.paddle.moveDir = isDown ? 1 : 0;
+      }
+
+      setPaddleX(targetX) {
+        this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, targetX - this.paddle.width / 2));
+        if (this.ballAttached && this.balls[0]) {
+          this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+        }
+      }
+
+      // 스와이프용 상대 이동 (손가락 이동량만큼 패들 이동)
+      movePaddleBy(dx) {
+        this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, this.paddle.x + dx));
+        if (this.ballAttached && this.balls[0]) {
+          this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+        }
+      }
+
+      // --- 업데이트 및 물리 엔진 ---
+      update(deltaSec) {
+        if (!this.isPlaying || this.isGameOver) return;
+
+        // 1. 패들 이동
+        const pSpeed = this.paddle.speed;
+
+        if (this.paddle.moveDir !== 0) {
+          this.paddle.x += this.paddle.moveDir * pSpeed * deltaSec;
+          this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, this.paddle.x));
+          if (this.ballAttached && this.balls[0]) {
+            this.balls[0].x = this.paddle.x + this.paddle.width / 2;
+          }
+        }
+
+        // 2. 공 업데이트 & 충돌 판정
+        if (!this.ballAttached && !this.isStageClearing) {
+          this.updateBalls(deltaSec);
+        }
+
+        // 3. 떨어지는 선물/폭탄 업데이트 & 패들 캐치
+        if (this.dropCooldown > 0) this.dropCooldown = Math.max(0, this.dropCooldown - deltaSec);
+        for (let i = this.fallingItems.length - 1; i >= 0; i--) {
+          const item = this.fallingItems[i];
+          item.y += item.vy * deltaSec;
+
+          // 패들과 충돌 (아이템 캐치!)
+          if (item.y + item.size >= this.paddle.y && item.y <= this.paddle.y + this.paddle.height &&
+              item.x + item.size >= this.paddle.x && item.x <= this.paddle.x + this.paddle.width) {
+            this.fallingItems.splice(i, 1);
+            this.dropCooldown = DROP_COOLDOWN_SEC;
+            this.applyItem(item);
+            continue;
+          }
+
+          if (item.y > this.height) {
+            this.fallingItems.splice(i, 1);
+            this.dropCooldown = DROP_COOLDOWN_SEC;
+          }
+        }
+
+        // 4. 파티클·피해 연출 타이머
+        this.updateParticles(deltaSec);
+
+        // 스테이지 클리어 확인
+        if (this.bricks.length === 0) {
+          this.stageClear();
+        }
+      }
+
+      updateBalls(deltaSec) {
+        for (let i = this.balls.length - 1; i >= 0; i--) {
+          const ball = this.balls[i];
+          ball.x += ball.vx * deltaSec;
+          ball.y += ball.vy * deltaSec;
+
+          // 좌우 벽 튕김
+          if (ball.x - ball.radius < 0) {
+            ball.x = ball.radius;
+            ball.vx = Math.abs(ball.vx);
+            audio.playPaddleHit();
+          } else if (ball.x + ball.radius > this.width) {
+            ball.x = this.width - ball.radius;
+            ball.vx = -Math.abs(ball.vx);
+            audio.playPaddleHit();
+          }
+
+          // 상단 벽 튕김
+          if (ball.y - ball.radius < 0) {
+            ball.y = ball.radius;
+            ball.vy = Math.abs(ball.vy);
+            audio.playPaddleHit();
+          }
+
+          // 패들 튕김 판정
+          if (ball.y + ball.radius >= this.paddle.y && ball.y - ball.radius <= this.paddle.y + this.paddle.height &&
+              ball.x >= this.paddle.x - ball.radius && ball.x <= this.paddle.x + this.paddle.width + ball.radius && ball.vy > 0) {
+            
+            // 패들 맞은 위치에 따른 각도 계산 (-60도 ~ +60도)
+            const hitPos = (ball.x - (this.paddle.x + this.paddle.width / 2)) / (this.paddle.width / 2);
+            const maxAngle = Math.PI * 0.38;
+            const angle = hitPos * maxAngle - Math.PI / 2;
+            const curSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+
+            ball.vx = Math.cos(angle) * curSpeed;
+            ball.vy = Math.sin(angle) * curSpeed;
+            ball.y = this.paddle.y - ball.radius - 1;
+
+            audio.playPaddleHit();
+            this.createPaddleHitParticles(ball.x, ball.y);
+          }
+
+          // 바닥 추락 판정
+          if (ball.y - ball.radius > this.height) {
+            this.balls.splice(i, 1);
+          }
+
+          // 벽돌 충돌 검사
+          this.checkBrickCollision(ball);
+        }
+
+        // 공이 모두 사라졌을 때
+        if (this.balls.length === 0) {
+          this.loseLife();
+        }
+      }
+
+      checkBrickCollision(ball) {
+        for (let i = this.bricks.length - 1; i >= 0; i--) {
+          const br = this.bricks[i];
+          if (ball.x + ball.radius >= br.x && ball.x - ball.radius <= br.x + br.width &&
+              ball.y + ball.radius >= br.y && ball.y - ball.radius <= br.y + br.height) {
+            // 상하좌우 반사 판정
+            const overlapLeft = (ball.x + ball.radius) - br.x;
+            const overlapRight = (br.x + br.width) - (ball.x - ball.radius);
+            const overlapTop = (ball.y + ball.radius) - br.y;
+            const overlapBottom = (br.y + br.height) - (ball.y - ball.radius);
+
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+            if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+              ball.vx = -ball.vx;
+            } else {
+              ball.vy = -ball.vy;
+            }
+
+            this.damageBrick(i);
+            break;
+          }
+        }
+      }
+
+      damageBrick(index) {
+        const br = this.bricks[index];
+        br.hp--;
+        audio.playBrickHit();
+        this.createBrickParticles(br.x + br.width / 2, br.y + br.height / 2, br.color);
+
+        if (br.hp <= 0) {
+          this.bricks.splice(index, 1);
+
+          // 아이템 드롭 — 화면에 아이템이 없고 쿨다운이 끝났을 때만 확률로 롤
+          const noneFalling = this.fallingItems.length === 0;
+          const canDrop = noneFalling && this.dropCooldown <= 0;
+          // 최소 개수 보장: 남은 벽돌이 부족해지면 쿨다운과 관계없이 모자란 쪽(선물/폭탄)을 떨어뜨림
+          const giftsNeeded = Math.max(0, MIN_GIFTS_PER_STAGE - this.stageGiftDrops);
+          const bombsNeeded = Math.max(0, MIN_BOMBS_PER_STAGE - this.stageBombDrops);
+          const totalNeeded = giftsNeeded + bombsNeeded;
+          const mustDrop = totalNeeded > 0 && noneFalling && this.bricks.length > 0 &&
+            this.bricks.length <= totalNeeded * GUARANTEE_BRICKS_PER_ITEM;
+          let drop = null;
+          if (mustDrop) {
+            const giveGift = giftsNeeded === bombsNeeded ? Math.random() < GIFT_RATIO : giftsNeeded > bombsNeeded;
+            drop = giveGift ? { ...GIFT_ITEM, isGood: true } : { ...BOMB_ITEM, isGood: false };
+          } else if (canDrop) {
+            drop = this.itemManager.rollDropItem();
+          }
+          // 최대 개수 제한: 그 종류가 이미 최대만큼 떨어졌으면 이번 드롭은 건너뜀 (선물·폭탄 확률은 그대로)
+          if (drop && drop.isGood && this.stageGiftDrops >= MAX_GIFTS_PER_STAGE) drop = null;
+          if (drop && !drop.isGood && this.stageBombDrops >= MAX_BOMBS_PER_STAGE) drop = null;
+          if (drop) {
+            if (drop.isGood) this.stageGiftDrops++;
+            else this.stageBombDrops++;
+            this.fallingItems.push({
+              ...drop,
+              x: br.x + br.width / 2 - ITEM_SIZE / 2,
+              y: br.y,
+              size: ITEM_SIZE,
+              vy: 140
+            });
+          }
+        }
+        this.triggerStateUpdate();
+      }
+
+      applyItem(item) {
+        if (item.isGood) audio.playCatchItem();
+        else audio.playBadItem();
+
+        // 선물: 도감 아이템 등록 + HP 회복 / 폭탄: HP 감소
+        if (!item.isGood) {
+          this.takeDamage(HP_BOMB_DAMAGE, '💣', item.x + item.size / 2, this.paddle.y);
+          return;
+        }
+        const coupon = this.couponWallet.grant();
+        this.onNotifyItem(item, coupon);
+        this.addFloatingText(`🎁 HP +${HP_GIFT_HEAL}`, this.width / 2, this.height * 0.55, '#69F0AE', 24);
+        this.changeHp(HP_GIFT_HEAL);
+      }
+
+      // HP 증감 (양수 회복, 음수 감소). 0이 되면 게임 오버
+      changeHp(delta) {
+        this.hp = Math.max(0, Math.min(HP_MAX, this.hp + delta));
+        this.lastHpDelta = delta;
+        if (this.hp <= 0 && !this.isGameOver) {
+          this.gameOver(false);
+          return;
+        }
+        this.triggerStateUpdate();
+      }
+
+      // HP 감소 공통 연출: 화면 흔들림 + 붉은 테두리 번쩍임 + 큰 "HP -N" 문구 + 파편
+      takeDamage(amount, icon, x, y) {
+        this.damageFlash = DAMAGE_FLASH_SEC;
+        this.addFloatingText(`${icon} HP -${amount}`, this.width / 2, this.height * 0.55, '#FF1744', 30);
+        for (let i = 0; i < 18; i++) {
+          this.particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 320,
+            vy: -Math.random() * 260 - 40,
+            life: 0.7,
+            maxLife: 0.7,
+            color: i % 2 ? '#FF1744' : '#FF9100',
+            size: Math.random() * 5 + 3
+          });
+        }
+        this.changeHp(-amount);
+      }
+
+      loseLife() {
+        audio.playLoseLife();
+        this.takeDamage(HP_BALL_LOST_DAMAGE, '💥', this.paddle.x + this.paddle.width / 2, this.height - 10);
+        if (!this.isGameOver) this.resetBallAndPaddle();
+      }
+
+      stageClear() {
+        // 다음 스테이지 준비 중 매 프레임 재호출되어 스테이지가 연속 증가하는 것을 방지
+        if (this.isStageClearing) return;
+        this.isStageClearing = true;
+        this.fallingItems = [];
+        this.dropCooldown = 0;
+        audio.playVictory();
+
+        // 마지막 스테이지를 깨면 ALL CLEAR 후 결과 화면
+        if (this.stage >= MAX_STAGE) {
+          this.addFloatingText('🏆 ALL CLEAR!', this.width / 2, this.height / 2, '#FFE600', 26);
+          setTimeout(() => this.gameOver(true), 1200);
+          return;
+        }
+
+        this.stage++;
+        this.addFloatingText(`🌟 STAGE ${this.stage} 돌파!`, this.width / 2, this.height / 2, '#FFE600');
+        setTimeout(() => {
+          this.initStage(this.stage);
+          this.resetBallAndPaddle();
+          this.isStageClearing = false;
+          this.triggerStateUpdate();
+        }, 1200);
+      }
+
+      gameOver(victory = false) {
+        this.isGameOver = true;
+        this.isPlaying = false;
+        this.isVictory = victory;
+        if (!victory) audio.playLoseLife();
+        this.triggerStateUpdate();
+      }
+
+      triggerStateUpdate() {
+        if (this.onStateChange) {
+          this.onStateChange({
+            stage: this.stage,
+            hp: this.hp,
+            hpDelta: this.lastHpDelta,
+            bricksLeft: this.bricks.length,
+            isGameOver: this.isGameOver,
+            isVictory: this.isVictory
+          });
+        }
+      }
+
+      loop(time) {
+        if (!this.isPlaying || this.isGameOver) return;
+        const deltaTime = Math.min(0.05, (time - this.lastTime) / 1000);
+        this.lastTime = time;
+
+        if (!this.isPaused) this.update(deltaTime);
+        this.render();
+
+        this.animationFrameId = requestAnimationFrame(t => this.loop(t));
+      }
+
+      // --- 렌더링 ---
+      render() {
+        const { ctx } = this;
+        ctx.clearRect(0, 0, this.width, this.height);
+        const dmg = this.damageFlash > 0 ? this.damageFlash / DAMAGE_FLASH_SEC : 0;
+        ctx.save();
+        if (dmg > 0) {
+          const amp = 7 * dmg;
+          ctx.translate((Math.random() - 0.5) * amp * 2, (Math.random() - 0.5) * amp * 2);
+        }
+
+        // 1. 그리드 배경
+        ctx.fillStyle = '#0a0f1d';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        // 2. 벽돌 렌더링
+        for (const br of this.bricks) {
+          ctx.fillStyle = br.color;
+          ctx.fillRect(br.x, br.y, br.width, br.height);
+          // 8비트 베벨 입체 테두리
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.fillRect(br.x, br.y, br.width, 2);
+          ctx.fillRect(br.x, br.y, 2, br.height);
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.fillRect(br.x, br.y + br.height - 2, br.width, 2);
+          ctx.fillRect(br.x + br.width - 2, br.y, 2, br.height);
+        }
+
+        // 3. 패들 렌더링
+        ctx.fillStyle = '#00E5FF';
+        ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
+        ctx.fillStyle = '#80F0FF';
+        ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, 3);
+        ctx.fillStyle = '#008394';
+        ctx.fillRect(this.paddle.x, this.paddle.y + this.paddle.height - 3, this.paddle.width, 3);
+
+        // 4. 공 렌더링
+        ctx.fillStyle = '#FFE600';
+        for (const ball of this.balls) {
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 5. 떨어지는 선물 아이템 캡슐 렌더링
+        // 좋은 아이템은 초록 원 + 🎁, 나쁜 아이템은 빨간 원 + 💣 (깜빡이는 테두리)
+        for (const item of this.fallingItems) {
+          const cx = item.x + item.size / 2;
+          const cy = item.y + item.size / 2;
+          const r = item.size / 2;
+          const color = item.isGood ? '#00E676' : '#FF1744';
+          const pulse = 0.6 + 0.4 * Math.sin(performance.now() / 120);
+
+          ctx.save();
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 16;
+          ctx.fillStyle = item.isGood ? 'rgba(0, 60, 30, 0.85)' : 'rgba(70, 0, 15, 0.85)';
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = item.isGood ? 1 : pulse;
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.font = `${Math.round(item.size * 0.62)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.isGood ? '🎁' : '💣', cx, cy + 1);
+          ctx.textBaseline = 'alphabetic';
+        }
+
+        // 6. 파티클 & 플로팅 텍스트
+        this.renderParticles(ctx);
+        ctx.restore();
+
+        // 7. 피해 시 붉은 비네트
+        if (dmg > 0) {
+          const g = ctx.createRadialGradient(this.width / 2, this.height / 2, this.height * 0.25, this.width / 2, this.height / 2, this.height * 0.75);
+          g.addColorStop(0, 'rgba(255, 23, 68, 0)');
+          g.addColorStop(1, `rgba(255, 23, 68, ${0.6 * dmg})`);
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, this.width, this.height);
+        }
+        this.renderFloatingTexts(ctx);
+
+        // 8. 공 발사 전 시작 안내
+        if (this.ballAttached && this.isPlaying && !this.isGameOver && !this.isStageClearing && !this.isPaused) {
+          // 네온 효과(빛 번짐·깜빡임) 없이 굵은 일반 텍스트로만 강조
+          ctx.save();
+          ctx.font = 'bold 20px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#FFE600';
+          ctx.fillText(START_HINT_TEXT, this.width / 2, this.height / 2);
+          ctx.restore();
+        }
+      }
+
+      createBrickParticles(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+          this.particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 160,
+            vy: (Math.random() - 0.5) * 160,
+            color,
+            life: 0.35,
+            maxLife: 0.35,
+            size: Math.random() * 4 + 2
+          });
+        }
+      }
+
+      createPaddleHitParticles(x, y) {
+        for (let i = 0; i < 6; i++) {
+          this.particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 120,
+            vy: -Math.random() * 80 - 20,
+            color: '#00E5FF',
+            life: 0.25,
+            maxLife: 0.25,
+            size: 3
+          });
+        }
+      }
+
+      addFloatingText(text, x, y, color = '#FFFFFF', size = 13) {
+        this.floatingTexts.push({ text, x, y, color, size, life: 1.2, maxLife: 1.2 });
+      }
+
+      updateParticles(deltaSec) {
+        if (this.damageFlash > 0) this.damageFlash = Math.max(0, this.damageFlash - deltaSec);
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx * deltaSec;
+          p.y += p.vy * deltaSec;
+          p.life -= deltaSec;
+          if (p.life <= 0) this.particles.splice(i, 1);
+        }
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = this.floatingTexts[i];
+          ft.y -= 25 * deltaSec;
+          ft.life -= deltaSec;
+          if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+        }
+      }
+
+      renderParticles(ctx) {
+        for (const p of this.particles) {
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.life / p.maxLife;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        }
+        ctx.globalAlpha = 1.0;
+      }
+
+      renderFloatingTexts(ctx) {
+        ctx.textAlign = 'center';
+        for (const ft of this.floatingTexts) {
+          ctx.font = `bold ${ft.size}px monospace`;
+          ctx.globalAlpha = Math.min(1, ft.life / (ft.maxLife * 0.4));
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = ft.size > 20 ? 6 : 3;
+          ctx.strokeText(ft.text, ft.x, ft.y);
+          ctx.fillStyle = ft.color;
+          ctx.fillText(ft.text, ft.x, ft.y);
+        }
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    // ==========================================
+    // 4. UI 렌더링 및 이벤트 초기화
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      try { localStorage.removeItem('KTCU_BREAKER_CUSTOM_DECK_V1'); } catch (e) {}
+      const itemManager = new ItemManager();
+      const couponWallet = new CouponWallet();
+      const canvas = document.getElementById('breaker-canvas');
+
+      const hudStage = document.getElementById('hud-stage');
+      const hpTrack = document.getElementById('hp-track');
+      const hpFill = document.getElementById('hp-fill');
+      const hpGhost = document.getElementById('hp-ghost');
+      const hpPop = document.getElementById('hp-pop');
+      const hpFooter = document.querySelector('.hp-footer');
+      const hpText = document.getElementById('hp-text');
+      const couponCountEl = document.getElementById('coupon-count');
+      const btnWallet = document.getElementById('btn-coupon-wallet');
+      const modalWallet = document.getElementById('modal-wallet');
+      const modalPrize = document.getElementById('modal-prize');
+      const hudBricks = document.getElementById('hud-bricks');
+
+      const modalGameOver = document.getElementById('modal-gameover');
+      const finalStageEl = document.getElementById('final-stage');
+      const finalCouponsEl = document.getElementById('final-coupons');
+
+      const itemToast = document.getElementById('item-toast');
+      let toastTimeout = null;
+
+      const escapeHtml = (str) => String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+      // state: '' (알림용) | 'owned' (도감 획득) | 'locked' (도감 미획득)
+      function couponCardHtml(c, tagPrefix = '', state = '', no = 0) {
+        const label = no ? `No.${String(no).padStart(2, '0')}` : 'ITEM';
+        const tag = state === 'locked' ? '🔒 미획득' : `${tagPrefix}${escapeHtml(c.tag)}`;
+        return `
+          <div class="coupon-card ${state}">
+            <div class="coupon-stub">${c.icon}<small>${label}</small></div>
+            <div class="coupon-body">
+              <span class="coupon-tag">${tag}</span>
+              <span class="coupon-title">${escapeHtml(c.title)}</span>
+              <span class="coupon-desc">${escapeHtml(c.desc)}</span>
+            </div>
+          </div>`;
+      }
+
+      function progressHtml() {
+        let dots = '';
+        for (let i = 0; i < PRIZE_CONFIG.requiredCoupons; i++) {
+          dots += `<span class="${i < couponWallet.count ? 'on' : ''}"></span>`;
+        }
+        return `<div class="coupon-progress">${dots}</div>`;
+      }
+
+      // 도감 버튼: 응모 전에는 "아이템 도감"만, 응모 가능해지면 아래 줄에 "경품 응모 가능" 추가
+      function updateCouponUI() {
+        couponCountEl.hidden = !couponWallet.isPrizeReady;
+        couponCountEl.textContent = '경품 응모 가능';
+        btnWallet.classList.toggle('ready', couponWallet.isPrizeReady);
+      }
+
+      // isResult: 결과 팝업(GAME OVER·ALL CLEAR)이면 하단 아이템 도감 버튼으로 안내
+      function prizeBannerHtml(isResult = false) {
+        const need = PRIZE_CONFIG.requiredCoupons;
+        const prize = escapeHtml(PRIZE_CONFIG.prizeName);
+        if (couponWallet.isPrizeReady) {
+          const guide = isResult
+            ? `하단의 아이템 도감 버튼을 눌러 본인인증 후 <b>${prize}</b> 응모가 가능해요.`
+            : `본인인증 후 <b>${prize}</b> 응모가 가능해요.`;
+          return `🎉 아이템 <b>${couponWallet.count}개</b> 수집 완료!<br>${guide}${progressHtml()}`;
+        }
+        return `아이템 <b>${need}개</b>를 모으면 본인인증 후 <b>${prize}</b> 응모!<br>앞으로 <b>${need - couponWallet.count}개</b> 남았어요.${progressHtml()}`;
+      }
+
+      // 아이템 도감 열기 — 게임 중이면 일시정지
+      function openWallet() {
+        if (game.isPlaying) game.isPaused = true;
+        document.getElementById('wallet-prize').innerHTML = prizeBannerHtml();
+        // 전체 아이템을 번호 순으로 보여 주고, 획득 여부로 활성/비활성 표시
+        const owned = new Set(couponWallet.ids);
+        document.getElementById('wallet-summary').innerHTML =
+          `<span>전체 아이템 ${COUPON_POOL.length}종</span><span>획득 <b>${owned.size}</b> / ${COUPON_POOL.length}</span>`;
+        const list = document.getElementById('wallet-list');
+        list.scrollTop = 0;
+        list.innerHTML = COUPON_POOL.map((c, i) => couponCardHtml(c, '', owned.has(c.id) ? 'owned' : 'locked', i + 1)).join('');
+        document.getElementById('btn-prize-apply').disabled = !couponWallet.isPrizeReady;
+        document.getElementById('btn-wallet-resume').textContent = game.isPlaying ? '▶ 계속하기' : '닫기';
+        modalWallet.classList.add('active');
+      }
+
+      function closeWallet() {
+        modalWallet.classList.remove('active');
+        game.isPaused = false;
+      }
+
+      function openPrize() {
+        if (!couponWallet.isPrizeReady) return;
+        if (game.isPlaying) game.isPaused = true;
+        const prize = escapeHtml(PRIZE_CONFIG.prizeName);
+        document.getElementById('prize-count').textContent = couponWallet.count;
+        document.getElementById('prize-message').innerHTML = PRIZE_CONFIG.authUrl
+          ? `경품 지급을 위해 <b>본인인증</b>이 필요해요.<br>인증을 마치면 <b>${prize}</b> 응모가 완료됩니다.`
+          : '본인인증 연동을 준비하고 있어요.<br>조금만 기다려 주세요! 모은 아이템은 도감에 그대로 보관됩니다.';
+        const btnAuth = document.getElementById('btn-prize-auth');
+        btnAuth.disabled = !PRIZE_CONFIG.authUrl;
+        btnAuth.textContent = PRIZE_CONFIG.authUrl ? '🔐 본인인증 하기' : '🔐 준비 중';
+        modalWallet.classList.remove('active');
+        modalPrize.classList.add('active');
+      }
+
+      function closePrize() {
+        modalPrize.classList.remove('active');
+        game.isPaused = false;
+      }
+
+      // 알림 카드를 상단 HUD(STAGE·BRICKS·아이템 도감) 위에 겹쳐 벽돌을 가리지 않게 배치
+      const hudBar = document.querySelector('.hud-bar');
+      const appWrapper = document.querySelector('.mobile-app-wrapper');
+      function placeToastOverHud() {
+        const hud = hudBar.getBoundingClientRect();
+        const wrap = appWrapper.getBoundingClientRect();
+        itemToast.style.top = (hud.top - wrap.top) + 'px';
+        itemToast.style.width = hud.width + 'px';
+      }
+
+      function showItemToast(item, coupon) {
+        // 새 아이템이 도감에 등록됐을 때만 카드 알림 (전 종류를 모은 뒤에는 HP 회복만)
+        if (coupon) {
+          itemToast.innerHTML = couponCardHtml(coupon, '📖 도감 등록 · ');
+          placeToastOverHud();
+          updateCouponUI();
+          if (couponWallet.count === PRIZE_CONFIG.requiredCoupons) {
+            game.addFloatingText(`🎉 아이템 ${PRIZE_CONFIG.requiredCoupons}개 달성! 경품 응모 가능`, game.width / 2, game.height / 2 - 30, '#FFD700');
+          }
+          itemToast.classList.add('show');
+          if (toastTimeout) clearTimeout(toastTimeout);
+          toastTimeout = setTimeout(() => itemToast.classList.remove('show'), 2800);
+        }
+      }
+
+      function handleStateChange(state) {
+        hudStage.textContent = state.stage;
+        const hpPct = Math.round((state.hp / HP_MAX) * 100);
+        hpFill.style.width = hpPct + '%';
+        hpGhost.style.width = hpPct + '%';
+        hpFill.className = 'hp-fill' + (hpPct <= 30 ? ' low' : hpPct <= 60 ? ' mid' : '');
+        hpText.textContent = `${state.hp} / ${HP_MAX}`;
+        hpTrack.setAttribute('aria-valuenow', state.hp);
+        if (state.hpDelta) {
+          const isHit = state.hpDelta < 0;
+          [hpTrack, hpFooter, hpPop].forEach(el => el.classList.remove('hit', 'heal', 'damaged', 'damage'));
+          void hpTrack.offsetWidth; // 애니메이션 재시작
+          hpTrack.classList.add(isHit ? 'hit' : 'heal');
+          hpPop.textContent = isHit ? `HP ${state.hpDelta}` : `HP +${state.hpDelta}`;
+          hpPop.classList.add(isHit ? 'damage' : 'heal');
+          hpGhost.classList.toggle('hit-now', isHit);
+          if (isHit) hpFooter.classList.add('damaged');
+          setTimeout(() => {
+            hpTrack.classList.remove('hit', 'heal');
+            hpFooter.classList.remove('damaged');
+          }, 500);
+          game.lastHpDelta = 0;
+        }
+        hudBricks.textContent = state.bricksLeft;
+
+        if (state.isGameOver) {
+          finalStageEl.textContent = state.stage;
+          document.getElementById('gameover-title').textContent = state.isVictory ? 'ALL CLEAR!' : 'GAME OVER';
+          // 재시작 버튼: 올클리어는 '한 판 더', 게임 오버는 '다시 도전하기'
+          document.getElementById('btn-restart').textContent = state.isVictory ? '🔄 한 판 더' : '🔄 다시 도전하기';
+          finalCouponsEl.textContent = couponWallet.count;
+          document.getElementById('gameover-prize').innerHTML = prizeBannerHtml(true);
+          modalGameOver.classList.add('active');
+        }
+      }
+
+      const game = new BrickBreakerGame(canvas, itemManager, couponWallet, handleStateChange, showItemToast);
+
+      btnWallet.addEventListener('click', openWallet);
+      document.getElementById('btn-gameover-wallet').addEventListener('click', openWallet);
+      document.getElementById('btn-close-wallet').addEventListener('click', closeWallet);
+      document.getElementById('btn-wallet-resume').addEventListener('click', closeWallet);
+      document.getElementById('btn-prize-apply').addEventListener('click', openPrize);
+      document.getElementById('btn-close-prize').addEventListener('click', closePrize);
+      document.getElementById('btn-prize-cancel').addEventListener('click', closePrize);
+      document.getElementById('btn-prize-auth').addEventListener('click', () => {
+        if (!PRIZE_CONFIG.authUrl) return;
+        // 게임은 개인정보를 받지 않음 — 본인인증은 외부 인증 페이지에서 처리
+        window.open(PRIZE_CONFIG.authUrl, '_blank', 'noopener');
+      });
+      updateCouponUI();
+
+      const restartHandler = (e) => {
+        if (e) e.preventDefault();
+        audio.init();
+        modalGameOver.classList.remove('active');
+        game.start();
+      };
+      const btnRestart = document.getElementById('btn-restart');
+      btnRestart.addEventListener('click', restartHandler);
+      btnRestart.addEventListener('touchend', restartHandler);
+
+      // 닫기: 창 닫기 시도 → 막히면 이전 페이지 → 그래도 안 되면 fallbackUrl
+      document.getElementById('btn-close-game').addEventListener('click', () => {
+        audio.stopBgm();
+        game.isPaused = true;
+        window.close();
+        // 스크립트로 연 창이 아니면 브라우저가 window.close()를 무시하므로 잠시 후 대체 동작
+        setTimeout(() => {
+          if (window.closed) return;
+          if (CLOSE_CONFIG.fallbackUrl) {
+            location.href = CLOSE_CONFIG.fallbackUrl;
+          } else if (history.length > 1) {
+            history.back();
+          }
+        }, 200);
+      });
+
+      document.getElementById('btn-sound-bgm').addEventListener('click', () => {
+        const isPlaying = audio.toggleBgm();
+        document.getElementById('bgm-icon').textContent = isPlaying ? '🎵' : '🔇';
+      });
+
+      // --- PC: 최초 클릭 후 마우스 좌우 이동으로 패들 추적 ---
+      let mouseControlOn = false;
+      canvas.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        audio.init();
+        if (!mouseControlOn) {
+          // 첫 클릭: 마우스 조작을 켜고 바로 발사까지
+          mouseControlOn = true;
+          const rect = canvas.getBoundingClientRect();
+          game.setPaddleX(e.clientX - rect.left);
+        }
+        game.launchBall();
+      });
+      // 커서가 게임 화면 밖으로 나가도 계속 따라오도록 window에서 추적
+      window.addEventListener('mousemove', (e) => {
+        if (!mouseControlOn || game.isPaused) return;
+        const rect = canvas.getBoundingClientRect();
+        game.setPaddleX(e.clientX - rect.left);
+      });
+
+      // --- 모바일: 스와이프 방향·이동량만큼 패들 이동, 짧은 탭은 발사 ---
+      const SWIPE_SENSITIVITY = 1.3;
+      const TAP_MAX_MOVE = 8;
+      const TAP_MAX_MS = 250;
+      let touchLastX = 0;
+      let touchStartX = 0;
+      let touchStartTime = 0;
+
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        audio.init();
+        const t = e.touches[0];
+        touchLastX = touchStartX = t.clientX;
+        touchStartTime = performance.now();
+      }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const x = e.touches[0].clientX;
+        game.movePaddleBy((x - touchLastX) * SWIPE_SENSITIVITY);
+        touchLastX = x;
+      }, { passive: false });
+      canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        const isTap = Math.abs(t.clientX - touchStartX) < TAP_MAX_MOVE && performance.now() - touchStartTime < TAP_MAX_MS;
+        if (isTap) game.launchBall();
+      }, { passive: false });
+
+      // 키보드 컨트롤러
+      window.addEventListener('keydown', (e) => {
+        if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+        audio.init();
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.movePaddleLeft(true);
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.movePaddleRight(true);
+        if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') game.launchBall();
+        if (e.key === 'm' || e.key === 'M') {
+          const isPlaying = audio.toggleBgm();
+          document.getElementById('bgm-icon').textContent = isPlaying ? '🎵' : '🔇';
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.movePaddleLeft(false);
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.movePaddleRight(false);
+      });
+
+      window.addEventListener('resize', () => game.resizeCanvas());
+
+      // --- 진입 즉시 게임 시작 (시작 안내 팝업 없음) ---
+      // 브라우저 정책상 소리는 사용자가 처음 화면을 누른 뒤부터 들림 (첫 클릭·탭·키 입력 때 audio.init()으로 재생 허용)
+      game.start();
+      audio.startBgm();
+    });
+  </script>
+</body>
+</html>
