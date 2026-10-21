@@ -115,36 +115,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .flow-btn:active:not(:disabled), .back-game:active { opacity: .85; }
 
 
-/* ── 진입 화면(랜딩): GNB + 배너 + 푸터 ───────────────────────── */
-#landing-banner { position: absolute; left: 0; top: 132px; width: 375px; height: 388.67px; overflow: hidden; background: #000; }
-#landing-hint { position: absolute; left: 188.5px; top: 224.5px; transform: translate(-50%, -50%); font-size: 15px; line-height: 1.3; letter-spacing: -0.3px; color: #fff; white-space: nowrap; animation: hint-blink 1.4s ease-in-out infinite; }
-@keyframes hint-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-#gnb { position: absolute; left: 0; top: 0; width: 375px; height: 132px; z-index: 5; font-family: 'Paperlogy', 'Pretendard', sans-serif; pointer-events: none; }
-#gnb > * { pointer-events: auto; }
-.gnb-title { position: absolute; left: 24px; top: 40px; height: 30px; display: flex; align-items: center; white-space: nowrap; font-weight: 800; font-size: 25.255px; line-height: normal; letter-spacing: -0.7576px; color: #21409a; }
-.gnb-title .dash { letter-spacing: -1.5153px; }
-/* GNB 메뉴: 30px 아이콘 버튼 8개 (가운데 파란 칩이 EP.06 벽돌깨기) */
-.gnb-menu { position: absolute; left: 0; top: 94px; width: 375px; height: 30px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.08)); }
-.gb { position: absolute; top: 0; width: 30px; height: 30px; box-sizing: border-box; background: #fff; border: 1px solid #ebebeb; border-radius: 10px; }
-.gi { position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; overflow: hidden; }
-.gi.round { border-radius: 50%; }
-.gs { position: absolute; overflow: hidden; }
-.gs > img { position: absolute; max-width: none; }
-#menu-chip { position: absolute; left: 180px; top: 0; width: 112px; height: 30px; box-sizing: border-box; border-radius: 10px; background: #e1ebff; cursor: pointer; }
-#menu-chip .gi { background: transparent; }
-#menu-chip span.t { position: absolute; left: 30px; top: 9px; font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 12px; line-height: 1; letter-spacing: -0.36px; color: #21409a; text-transform: uppercase; white-space: nowrap; }
-#entry-footer { position: absolute; left: 0; top: 520.67px; width: 375px; height: 291.33px; background: #f5f8fd; font-family: 'Paperlogy', 'Pretendard', sans-serif; color: #000; text-transform: uppercase; }
-#entry-footer .logo { position: absolute; left: 24px; top: 32px; width: 240px; height: 21.329px; overflow: hidden; }
-#entry-footer .logo img { position: absolute; display: block; max-width: none; }
-#entry-footer .flinks { position: absolute; left: 24px; top: 85.33px; display: flex; align-items: center; gap: 9px; opacity: .7; font-weight: 700; font-size: 14px; line-height: 1.3; letter-spacing: -0.14px; white-space: nowrap; }
-#entry-footer .flinks i { display: block; width: 1px; height: 12px; background: #d8dce2; }
-#entry-footer .fline { position: absolute; left: 24px; top: 121.5px; width: 327px; height: 1px; background: #666e75; opacity: .2; }
-#entry-footer .addr { position: absolute; left: 24px; top: 150.5px; font-weight: 700; font-size: 13px; line-height: 1.5; opacity: .5; white-space: pre; }
-#entry-footer .copy { position: absolute; left: 24px; top: 213.5px; font-weight: 700; font-size: 11px; line-height: 1.5; opacity: .3; white-space: pre; }
-/* 메뉴를 누르면 뜨는 말풍선 tip */
-#menu-tip { position: absolute; left: 34px; top: 120px; width: 272px; height: 46px; z-index: 6; filter: drop-shadow(0 4px 7.5px rgba(0,0,0,.15)); }
-#menu-tip .arrow { position: absolute; left: 5px; top: 0; width: 262px; height: 22px; transform: rotate(180deg); }
-#menu-tip .bubble { position: absolute; left: 0; top: 12px; width: 272px; height: 34px; box-sizing: border-box; background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Pretendard', sans-serif; font-weight: 500; font-size: 12px; line-height: normal; letter-spacing: -0.36px; color: #2853f6; white-space: nowrap; text-transform: uppercase; }
 
 /* ── 진입 화면 ─────────────────────────────────────── */
 .title-layer { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-iyagi); font-size: 48px; line-height: normal; letter-spacing: -0.96px; text-align: center; white-space: nowrap; }
@@ -236,37 +206,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 <div id="viewport"><div id="stage-box"><div id="stage">
 
   <!-- ══════════ 1. 진입 화면 ══════════ -->
-  <!-- ══════════ 0. 진입 화면 (GNB + 배너 + 푸터) — 화면을 한 번 클릭하면 아래 START/TIP 화면으로 이동 ══════════ -->
-  <section id="screen-landing" class="screen" style="background:#fff;cursor:pointer">
-    <div id="landing-banner">
-      <img class="abs" src="assets/landing-bg.png" alt="" style="left:-95px;top:-87px;width:567px;height:589px;object-fit:cover;max-width:none">
-      <div class="title-layer" style="left:189px;top:128px;color:#0e4cff">레트로<br>벽돌깨기</div>
-      <div class="title-layer" style="left:187px;top:127px;color:var(--yellow)">레트로<br>벽돌깨기</div>
-      <p id="landing-hint">화면을 클릭하세요!</p>
-    </div>
-    <header id="gnb">
-      <div class="gnb-title"><span>The</span><span class="dash">&nbsp;-&nbsp;</span><span>K 더 캐보자</span></div>
-      <nav class="gnb-menu">
-        <div class="gb" style="left:10px"><span class="gi round"><span class="gs" style="left:1px;top:1px;width:19px;height:19px"><img src="assets/gnb/m1.png" alt="" style="height:217.28%;left:-40.74%;top:-8.64%;width:325.93%"></span></span></div><div class="gb" style="left:44px"><span class="gi round"><span class="gs" style="left:1px;top:1px;width:20px;height:20px"><img src="assets/gnb/m2.png" alt="" style="left:-6.25%;top:-6.25%;width:112.5%;height:112.5%"></span></span></div><div class="gb" style="left:78px"><span class="gi"><span class="gs" style="left:1px;top:1px;width:20px;height:20px"><img src="assets/gnb/m3.png" alt="" style="left:-5.56%;top:-5.56%;width:111.11%;height:111.11%"></span></span></div><div class="gb" style="left:112px"><span class="gi round"><span class="gs" style="left:0.917px;top:0px;width:21.083px;height:21.083px"><img src="assets/gnb/m4.png" alt="" style="left:-8.7%;top:-8.7%;width:117.39%;height:117.39%"></span></span></div><div class="gb" style="left:146px"><span class="gi round"><span class="gs" style="left:1px;top:2px;width:19px;height:19px"><img src="assets/gnb/m5.png" alt="" style="height:100%;left:-25%;top:0;width:150%"></span></span></div>
-        <div id="menu-chip" role="button" tabindex="0" aria-label="EP.06 벽돌깨기"><span class="gi round"><span class="gs" style="left:0;top:-0.917px;width:22.917px;height:22.917px"><img src="assets/gnb/m6.png" alt="" style="left:0;top:0;width:100%;height:100%;object-fit:cover"></span></span><span class="t">EP.06 벽돌깨기</span></div>
-        <div class="gb" style="left:296px"><span class="gi round"><span class="gs" style="left:1px;top:1px;width:20px;height:20px"><img src="assets/gnb/m7.png" alt="" style="left:-10.16%;top:-11.87%;width:123.75%;height:123.75%"></span></span></div><div class="gb" style="left:330px"><span class="gi"><span class="gs" style="left:2px;top:4px;width:18px;height:15px"><img src="assets/gnb/m8.png" alt="" style="height:146.15%;left:-121.74%;top:-25.64%;width:247.83%"></span></span></div>
-      </nav>
-    </header>
-    <div id="menu-tip" class="off" style="opacity:0">
-      <img class="arrow" src="assets/gnb/tip-arrow.svg" alt="">
-      <div class="bubble"><span>#벽돌깨기</span><span>#게임참여</span><span>#경품받기</span><span>#더케이오락실</span></div>
-    </div>
-    <footer id="entry-footer">
-      <div class="logo"><img src="assets/gnb/footer-logo-a.svg" alt="The-K 한국교직원공제회" style="left:20.3%;top:-0.04%;width:79.7%;height:91.17%"><img src="assets/gnb/footer-logo-b.svg" alt="" style="left:0;top:15.93%;width:18.88%;height:84.06%"></div>
-      <div class="flinks"><span>일반신고</span><i></i><span>부패공익신고</span><i></i><span>개인정보처리방침</span><i></i><span>이용약관</span></div>
-      <div class="fline"></div>
-      <div class="addr">07328 서울 영등포구 여의나루로 50 
-The-K한국교직원공제회</div>
-      <div class="copy">Copyright©2026 KTCU.  ALL RIGHTS RESERVED.</div>
-    </footer>
-  </section>
-
-  <section id="screen-entry" class="screen off" style="opacity:0">
+  <section id="screen-entry" class="screen">
     <img class="abs" src="assets/entry-bg.png" alt="" style="left:0;top:0;width:376px;height:812px">
     <img class="abs" src="assets/title-banner.svg" alt="더케이 오락실" style="left:48.3px;top:26px;width:279.64px;height:42.43px">
 
@@ -1316,7 +1256,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const couponWallet = new CouponWallet();
   const canvas = $('game-canvas');
 
-  const screenLanding = $('screen-landing');
   const screenEntry = $('screen-entry');
   const screenGame = $('screen-game');
   const hudStage = $('hud-stage');
@@ -1578,42 +1517,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('tip-close').addEventListener('click', () => { clearTipTimer(); hideEl(tipPopup); });
 
 
-  // 메뉴(EP.06 벽돌깨기)를 누르면 말풍선 tip 등장, 다시 누르거나 다른 곳을 누르면 사라짐
-  const menuTip = $('menu-tip');
-  let menuTipOpen = false;
-  function setMenuTip(open) {
-    if (open === menuTipOpen) return;
-    menuTipOpen = open;
-    if (open) {
-      menuTip.classList.remove('off');
-      if (HAS_GSAP) { gsap.killTweensOf(menuTip); gsap.fromTo(menuTip, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' }); }
-      else menuTip.style.opacity = 1;
-    } else hideEl(menuTip);
-  }
-  $('menu-chip').addEventListener('click', (e) => { e.stopPropagation(); setMenuTip(!menuTipOpen); });
-  $('menu-chip').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMenuTip(!menuTipOpen); } });
-  
-  // 랜딩 화면: 메뉴 칩/말풍선 외의 곳을 한 번 클릭하면 START/TIP 화면으로 이동
-  let landingDone = false;
-  function enterFromLanding() {
-    if (landingDone) return;
-    landingDone = true;
-    audio.init();
-    if (HAS_GSAP) {
-      gsap.to(screenLanding, { opacity: 0, duration: 0.25, onComplete: () => screenLanding.classList.add('off') });
-    } else { screenLanding.style.opacity = 0; screenLanding.classList.add('off'); }
-    showEl(screenEntry);
-    // 게임 TIP 팝업: START/TIP 화면에 들어오면 기본으로 떠 있다가 5초 뒤 자동으로 사라짐
-    showEl(tipPopup);
-    clearTipTimer();
-    tipTimer = setTimeout(() => { tipTimer = null; hideEl(tipPopup); }, TIP_AUTO_HIDE_MS);
-  }
-  screenLanding.addEventListener('click', (e) => {
-    if (e.target.closest('#menu-chip')) return;       // 칩은 말풍선 토글 전용
-    if (e.target.closest('#menu-tip')) return;
-    setMenuTip(false);
-    enterFromLanding();
-  });
+  // 진입 화면: 들어오면 게임 TIP 팝업이 기본으로 떠 있다가 5초 뒤 자동으로 사라짐
+  showEl(tipPopup);
+  clearTipTimer();
+  tipTimer = setTimeout(() => { tipTimer = null; hideEl(tipPopup); }, TIP_AUTO_HIDE_MS);
 
   function startGame() {
     clearTipTimer();
@@ -1731,7 +1638,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('resize', () => { fitStage(); game.resizeCanvas(); });
 
   // 진입 화면 등장
-  if (HAS_GSAP) gsap.from(screenLanding, { opacity: 0, duration: 0.4 });
+  if (HAS_GSAP) gsap.from(screenEntry, { opacity: 0, duration: 0.4 });
 });
 </script>
 </body>
